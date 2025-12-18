@@ -103,42 +103,67 @@ while ( have_posts() ) : the_post();
                 ob_start();
                 ?>
                 <?php
-                    $staff_style = get_post_meta( $post_id, 'jhh_staff_card_style', true );
-                    // Allow: simple | notebook | aurora (fallback: notebook)
-                    $staff_style = in_array( $staff_style, [ 'simple', 'notebook', 'aurora' ], true ) ? $staff_style : 'notebook';
+                    // Get staff style: use post-specific if set, otherwise global default
+                    $post_style = get_post_meta( $post_id, 'jhh_staff_card_style', true );
+                    $global_default = get_option( 'okja_default_staff_style', 'simple' );
+                    
+                    // If post style is empty or 'global', use the global default
+                    if ( empty( $post_style ) || $post_style === 'global' ) {
+                        $staff_style = $global_default;
+                    } else {
+                        $staff_style = $post_style;
+                    }
+                    
+                    // Allow: simple | notebook | aurora | custom (fallback: simple)
+                    $staff_style = in_array( $staff_style, [ 'simple', 'notebook', 'aurora', 'custom' ], true ) ? $staff_style : 'simple';
                     $style_map   = [
                         'simple'   => 'bg-simple',
                         'notebook' => 'bg-notebook',
                         'aurora'   => 'bg-aurora',
+                        'custom'   => 'bg-custom',
                     ];
-                    $style_class = $style_map[ $staff_style ] ?? 'bg-notebook';
+                    $style_class = $style_map[ $staff_style ] ?? 'bg-simple';
+                    
+                    // Custom inline styles for custom mode
+                    $custom_inline = '';
+                    if ( $staff_style === 'custom' ) {
+                        $bg_color = get_option( 'okja_staff_bg_color', '#2b2727' );
+                        $text_color = get_option( 'okja_staff_text_color', '#ffffff' );
+                        $accent_color = get_option( 'okja_staff_accent_color', '#b9aaff' );
+                        $custom_inline = sprintf(
+                            '--okja-bg:%s;--okja-text:%s;--okja-accent:%s;',
+                            esc_attr( $bg_color ),
+                            esc_attr( $text_color ),
+                            esc_attr( $accent_color )
+                        );
+                    }
                 ?>
-                <div class="jhh-staff-card <?php echo esc_attr( $style_class ); ?>">
+                <div class="jhh-staff-card <?php echo esc_attr( $style_class ); ?>"<?php echo $custom_inline ? ' style="' . $custom_inline . '"' : ''; ?>>
                     <span class="jhh-staff-topline" aria-hidden="true"></span>
                     <div class="jhh-staff-inner">
                         <?php if ( $img ) echo $img; ?>
-                        <div class="jhh-staff-meta">
-                            <h2 class="jhh-staff-name"><?php echo esc_html( $t->name ); ?></h2>
-                            <?php if ( $funktion ) : ?><div class="jhh-staff-role"><?php echo esc_html( $funktion ); ?></div><?php endif; ?>
-                            <?php if ( $has_contact ) : ?>
-                                <?php
-                                // Kontakt als E-Mail-Link ausgeben, wenn er wie eine E-Mail aussieht
-                                $c_raw   = trim( (string) $contact );
-                                // Anzeige-Text: (at), [at], " at " durch @ ersetzen
-                                $display = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
-                                // Kandidat für mailto: – Sonderformen in echtes @ wandeln und Whitespace entfernen
-                                $candidate = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
-                                $candidate = preg_replace( '/\s+/', '', $candidate );
-                                // Falls ein führendes mailto: enthalten ist, entfernen
-                                $candidate = preg_replace( '/^mailto:/i', '', $candidate );
-                                $email     = sanitize_email( $candidate );
-                                if ( $email && strpos( $email, '@' ) !== false ) : ?>
-                                    <a class="jhh-staff-contact" href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $display ); ?></a>
-                                <?php else : ?>
-                                    <div class="jhh-staff-contact"><?php echo esc_html( $display ); ?></div>
-                                <?php endif; ?>
+                    </div>
+                    <div class="jhh-staff-meta">
+                        <h2 class="jhh-staff-name"><?php echo esc_html( $t->name ); ?></h2>
+                        <?php if ( $funktion ) : ?><div class="jhh-staff-role"><?php echo esc_html( $funktion ); ?></div><?php endif; ?>
+                        <?php if ( $has_contact ) : ?>
+                            <?php
+                            // Kontakt als E-Mail-Link ausgeben, wenn er wie eine E-Mail aussieht
+                            $c_raw   = trim( (string) $contact );
+                            // Anzeige-Text: (at), [at], " at " durch @ ersetzen
+                            $display = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
+                            // Kandidat für mailto: – Sonderformen in echtes @ wandeln und Whitespace entfernen
+                            $candidate = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
+                            $candidate = preg_replace( '/\s+/', '', $candidate );
+                            // Falls ein führendes mailto: enthalten ist, entfernen
+                            $candidate = preg_replace( '/^mailto:/i', '', $candidate );
+                            $email     = sanitize_email( $candidate );
+                            if ( $email && strpos( $email, '@' ) !== false ) : ?>
+                                <a class="jhh-staff-contact" href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $display ); ?></a>
+                            <?php else : ?>
+                                <div class="jhh-staff-contact"><?php echo esc_html( $display ); ?></div>
                             <?php endif; ?>
-                        </div>
+                        <?php endif; ?>
                     </div>
                     <?php if ( $has_bio ) : ?><div class="jhh-staff-bio"><?php echo wp_kses_post( wpautop( $bio ) ); ?></div><?php endif; ?>
                 </div>
@@ -153,30 +178,32 @@ while ( have_posts() ) : the_post();
         <?php endif; ?>
 
         <?php
-        // Similar offers – share at least one Pädagogik term
-        $paed_terms = taxonomy_exists( JHH_TAX_PAED ) ? wp_list_pluck( (array) get_the_terms( $post_id, JHH_TAX_PAED ), 'term_id' ) : [];
-        if ( $paed_terms ) {
-            $rel = new WP_Query([
-                'post_type' => 'angebot',
-                'posts_per_page' => 6,
-                'post__not_in' => [ $post_id ],
-                'tax_query' => [[
-                    'taxonomy' => JHH_TAX_PAED,
-                    'field' => 'term_id',
-                    'terms' => array_map('intval', $paed_terms),
-                    'operator' => 'IN'
-                ]],
-                'no_found_rows' => true
-            ]);
-            if ( $rel->have_posts() ) {
-                echo '<section class="jhh-related"><h3>Ähnliche Angebote</h3><div class="jhh-related-grid">';
-                while ( $rel->have_posts() ) { $rel->the_post();
-                    $img = get_the_post_thumbnail( get_the_ID(), 'medium', [ 'class' => 'jhh-related-thumb' ] );
-                    printf('<a class="jhh-related-item" href="%s">%s<span class="jhh-related-title">%s</span></a>', esc_url( get_permalink() ), $img ?: '', esc_html( get_the_title() ));
+        // Weitere Angebote – zeige alle anderen Angebote (max 6), zufällig sortiert
+        $rel_args = [
+            'post_type' => 'angebot',
+            'post_status' => 'publish',
+            'posts_per_page' => 6,
+            'post__not_in' => [ $post_id ],
+            'ignore_sticky_posts' => true,
+            'no_found_rows' => true,
+            'orderby' => 'rand'
+        ];
+        
+        $rel = new WP_Query( $rel_args );
+        
+        if ( $rel->have_posts() ) {
+            echo '<section class="jhh-related"><h3>Weitere Angebote</h3><div class="jhh-related-grid">';
+            while ( $rel->have_posts() ) { $rel->the_post();
+                $img = get_the_post_thumbnail( get_the_ID(), 'medium', [ 'class' => 'jhh-related-thumb' ] );
+                // Pass the back parameter to related offer links so the return button works correctly
+                $related_link = get_permalink();
+                if ( $back_param ) {
+                    $related_link = add_query_arg( 'back', urlencode( $back_param ), $related_link );
                 }
-                echo '</div></section>';
-                wp_reset_postdata();
+                printf('<a class="jhh-related-item" href="%s">%s<span class="jhh-related-title">%s</span></a>', esc_url( $related_link ), $img ?: '', esc_html( get_the_title() ));
             }
+            echo '</div></section>';
+            wp_reset_postdata();
         }
         ?>
         

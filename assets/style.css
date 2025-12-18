@@ -34,6 +34,8 @@
   display: block;
   margin: -12px -14px 8px;
   overflow: hidden;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
 .jhh-thumb img {
   display: block;
@@ -41,6 +43,63 @@
   height: auto;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+  transform-origin: center center;
+}
+
+/* ==========================================
+   Image Hover Effects
+   ========================================== */
+/* Tilt effect */
+.jhh-thumb.jhh-hover-tilt {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-thumb.jhh-hover-tilt img {
+  transform-style: preserve-3d;
+}
+.jhh-thumb.jhh-hover-tilt:hover img {
+  transform: rotateY(-5deg) rotateX(3deg) scale(1.02);
+  box-shadow: 8px 8px 20px rgba(0,0,0,0.3);
+}
+
+/* Zoom effect */
+.jhh-thumb.jhh-hover-zoom:hover img {
+  transform: scale(1.08);
+}
+
+/* Glow effect */
+.jhh-thumb.jhh-hover-glow:hover img {
+  filter: brightness(1.1) saturate(1.15);
+  box-shadow: 0 0 20px rgba(255, 150, 100, 0.4), 0 0 40px rgba(200, 100, 255, 0.25);
+}
+
+/* Tilt + Zoom combination */
+.jhh-thumb.jhh-hover-tilt-zoom {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-thumb.jhh-hover-tilt-zoom img {
+  transform-style: preserve-3d;
+}
+.jhh-thumb.jhh-hover-tilt-zoom:hover img {
+  transform: rotateY(-4deg) rotateX(2deg) scale(1.06);
+  box-shadow: 6px 6px 18px rgba(0,0,0,0.25);
+}
+
+/* Reduced motion: disable hover animations */
+@media (prefers-reduced-motion: reduce) {
+  .jhh-thumb img {
+    transition: none;
+  }
+  .jhh-thumb.jhh-hover-tilt:hover img,
+  .jhh-thumb.jhh-hover-zoom:hover img,
+  .jhh-thumb.jhh-hover-glow:hover img,
+  .jhh-thumb.jhh-hover-tilt-zoom:hover img {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
 }
 
 /* ==========================================
@@ -160,6 +219,8 @@
    ========================================== */
 .jhh-post-image {
   display: block;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
 }
 .jhh-post-image img.jhh-post-thumb {
   width: 100%;
@@ -168,7 +229,54 @@
   display: block;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+  transform-origin: center center;
 }
+
+/* Image Hover Effects for jhh-post-image */
+/* Tilt effect - handled by JavaScript for dynamic mouse tracking */
+.jhh-post-image.jhh-hover-tilt {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-post-image.jhh-hover-tilt img {
+  transform-style: preserve-3d;
+}
+/* CSS fallback removed - JS handles dynamic tilt */
+
+.jhh-post-image.jhh-hover-zoom:hover img {
+  transform: scale(1.08);
+}
+
+.jhh-post-image.jhh-hover-glow:hover img {
+  filter: brightness(1.1) saturate(1.15);
+  box-shadow: 0 0 20px rgba(255, 150, 100, 0.4), 0 0 40px rgba(200, 100, 255, 0.25);
+}
+
+/* Tilt + Zoom - handled by JavaScript for dynamic mouse tracking */
+.jhh-post-image.jhh-hover-tilt-zoom {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-post-image.jhh-hover-tilt-zoom img {
+  transform-style: preserve-3d;
+}
+/* CSS fallback removed - JS handles dynamic tilt */
+
+@media (prefers-reduced-motion: reduce) {
+  .jhh-post-image img {
+    transition: none;
+  }
+  .jhh-post-image.jhh-hover-tilt:hover img,
+  .jhh-post-image.jhh-hover-zoom:hover img,
+  .jhh-post-image.jhh-hover-glow:hover img,
+  .jhh-post-image.jhh-hover-tilt-zoom:hover img {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 1000px) {
   .jhh-post-image img.jhh-post-thumb { height: 280px; }
 }
@@ -330,6 +438,31 @@
 /* ==========================================
    SINGLE: Angebot – Hero, Staff, Related
    ========================================== */
+
+/* Content area: ensure proper list styles */
+.jhh-content ul,
+.jhh-content ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+.jhh-content ul {
+  list-style-type: disc;
+}
+.jhh-content ol {
+  list-style-type: decimal;
+}
+.jhh-content li {
+  margin-bottom: 0.5em;
+  display: list-item;
+}
+.jhh-content ul ul,
+.jhh-content ol ol,
+.jhh-content ul ol,
+.jhh-content ol ul {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
 .jhh-single-angebot .jhh-hero{ position:relative; min-height: 420px; background-size: cover; background-position: center; }
 .jhh-single-angebot .jhh-hero::after{ content:''; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55)); }
 /* Center the hero title horizontally and vertically */
@@ -361,14 +494,15 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
 
 /* Staff cards */
 .jhh-staff{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 18px; margin: 28px 0; }
-.jhh-staff-card{ position:relative; background: #2b2727; color:#fff; border-radius: 16px; padding: 18px; overflow:hidden; }
+.jhh-staff-card{ position:relative; background: #2b2727; color:#fff; border-radius: 16px; padding: 18px; overflow:hidden; text-align: center; }
 .jhh-staff-topline{ position:absolute; left:0; right:0; top:0; height:6px; background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff, #00ff7f, #ffd700, #ff6a00); }
-.jhh-staff-inner{ display:flex; gap: 14px; align-items:center; }
+.jhh-staff-inner{ display:flex; justify-content: center; margin-bottom: 12px; }
 .jhh-staff-avatar{ border-radius: 50%; width: 116px; height:116px; object-fit:cover; }
+.jhh-staff-meta{ margin-bottom: 10px; }
 .jhh-staff-name{ margin:0; font-size: 1.4rem; }
 .jhh-staff-role{ opacity:.9; margin-top:4px; font-weight:600; }
-.jhh-staff-contact{ color:#b9aaff; margin-top:4px; font-weight:700; }
-.jhh-staff-bio{ margin-top:10px; opacity:.95; }
+.jhh-staff-contact{ color:#b9aaff; margin-top:4px; font-weight:700; display: block; }
+.jhh-staff-bio{ margin-top:10px; opacity:.95; text-align: left; }
 
 /* Related offers */
 .jhh-related{ margin: 36px 0 20px; }
@@ -385,6 +519,20 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
   ========================================== */
 .jhh-staff-card.bg-simple{ background:#2b2727; color:#fff; }
 .jhh-staff-card.bg-simple .jhh-staff-contact{ color:#b9aaff; }
+
+/* ==========================================
+  NEW: Custom staff card variant (user-defined colors via CSS variables)
+  ========================================== */
+.jhh-staff-card.bg-custom{
+  background: var(--okja-bg, #2b2727);
+  color: var(--okja-text, #ffffff);
+}
+.jhh-staff-card.bg-custom .jhh-staff-contact{
+  color: var(--okja-accent, #b9aaff);
+}
+.jhh-staff-card.bg-custom .jhh-staff-topline{
+  background: linear-gradient(90deg, var(--okja-accent, #b9aaff), #ee0979, #8a2be2, #4169e1, #00c6ff);
+}
 
 /* Single page: staff one-column layout (stacked) */
 .jhh-single-angebot .jhh-staff{ grid-template-columns: 1fr; }

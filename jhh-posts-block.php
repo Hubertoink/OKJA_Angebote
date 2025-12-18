@@ -1,8 +1,9 @@
 <?php
 /**
- * Plugin Name: JHH Posts Block
+ * Plugin Name: OKJA_Angebote
  * Description: Flexibler Beitrags-/CPT-Block mit Live-Vorschau, Post-Typ-Auswahl, Taxonomie-Filtern/Badges, frei anordenbaren Elementen und Style-Optionen.
- * Author: Nikolas Häfner
+ * Author: Hubertoink
+ * Version: 1.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  */
@@ -77,6 +78,246 @@ add_action( 'init', function() {
     ] );
 
 }, 0 );
+
+// ------------------------------------------------------------
+// Plugin-Einstellungen: Globaler Staff Card Style + Farben
+// ------------------------------------------------------------
+add_action( 'admin_menu', function() {
+    add_options_page(
+        __( 'OKJA Angebote Einstellungen', 'jhh-posts-block' ),
+        __( 'OKJA Angebote', 'jhh-posts-block' ),
+        'manage_options',
+        'okja-angebote-settings',
+        'okja_render_settings_page'
+    );
+} );
+
+// Enqueue color picker on settings page
+add_action( 'admin_enqueue_scripts', function( $hook ) {
+    if ( $hook !== 'settings_page_okja-angebote-settings' ) return;
+    wp_enqueue_style( 'wp-color-picker' );
+    wp_enqueue_script( 'wp-color-picker' );
+    wp_add_inline_script( 'wp-color-picker', "
+        jQuery(document).ready(function($){
+            $('.okja-color-picker').wpColorPicker({
+                change: function(event, ui) {
+                    okjaUpdatePreview();
+                },
+                clear: function() {
+                    okjaUpdatePreview();
+                }
+            });
+            
+            // Live preview update
+            function okjaUpdatePreview() {
+                setTimeout(function() {
+                    var bg = $('input[name=okja_staff_bg_color]').val() || '#2b2727';
+                    var text = $('input[name=okja_staff_text_color]').val() || '#ffffff';
+                    var accent = $('input[name=okja_staff_accent_color]').val() || '#b9aaff';
+                    
+                    $('#okja-staff-preview').css({
+                        'background': bg,
+                        'color': text
+                    });
+                    $('#okja-staff-preview .okja-preview-contact').css('color', accent);
+                    $('#okja-staff-preview .okja-preview-topline').css('background', 'linear-gradient(90deg, ' + accent + ', #ee0979, #8a2be2, #4169e1, #00c6ff)');
+                }, 50);
+            }
+            
+            // Initial preview
+            okjaUpdatePreview();
+        });
+    " );
+} );
+
+add_action( 'admin_init', function() {
+    // Style setting
+    register_setting( 'okja_settings_group', 'okja_default_staff_style', [
+        'type' => 'string',
+        'default' => 'simple',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ 'simple', 'notebook', 'aurora', 'custom' ], true ) ? $val : 'simple';
+        }
+    ] );
+    
+    // Color settings
+    register_setting( 'okja_settings_group', 'okja_staff_bg_color', [
+        'type' => 'string',
+        'default' => '#2b2727',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_staff_text_color', [
+        'type' => 'string',
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_staff_accent_color', [
+        'type' => 'string',
+        'default' => '#b9aaff',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ] );
+    
+    // Section: Style
+    add_settings_section(
+        'okja_staff_section',
+        __( 'Mitarbeiter-Karten (Single-Ansicht)', 'jhh-posts-block' ),
+        function() {
+            echo '<p>' . esc_html__( 'Wähle den Standard-Style für alle Mitarbeiter-Karten in der Einzelansicht der Angebote.', 'jhh-posts-block' ) . '</p>';
+        },
+        'okja-angebote-settings'
+    );
+    
+    add_settings_field(
+        'okja_default_staff_style',
+        __( 'Standard Staff-Card Style', 'jhh-posts-block' ),
+        'okja_render_staff_style_field',
+        'okja-angebote-settings',
+        'okja_staff_section'
+    );
+    
+    // Section: Colors
+    add_settings_section(
+        'okja_colors_section',
+        __( 'Benutzerdefinierte Farben', 'jhh-posts-block' ),
+        function() {
+            echo '<p>' . esc_html__( 'Diese Farben werden beim Style "Benutzerdefiniert" verwendet. Bei anderen Styles dienen sie als Basis-Anpassung.', 'jhh-posts-block' ) . '</p>';
+        },
+        'okja-angebote-settings'
+    );
+    
+    add_settings_field(
+        'okja_staff_colors',
+        __( 'Kartenfarben', 'jhh-posts-block' ),
+        'okja_render_color_fields',
+        'okja-angebote-settings',
+        'okja_colors_section'
+    );
+    
+    add_settings_field(
+        'okja_staff_preview',
+        __( 'Vorschau', 'jhh-posts-block' ),
+        'okja_render_preview_field',
+        'okja-angebote-settings',
+        'okja_colors_section'
+    );
+} );
+
+function okja_render_staff_style_field() {
+    $style = get_option( 'okja_default_staff_style', 'simple' );
+    ?>
+    <fieldset>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_default_staff_style" value="simple" <?php checked( $style, 'simple' ); ?>>
+            <?php esc_html_e( 'Schlicht (dunkel, mit Farblinie)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_default_staff_style" value="notebook" <?php checked( $style, 'notebook' ); ?>>
+            <?php esc_html_e( 'Papier (Notizbuch) – mit aufgepinntem Foto', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_default_staff_style" value="aurora" <?php checked( $style, 'aurora' ); ?>>
+            <?php esc_html_e( 'Pastell-Gradient – ohne Pin', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;">
+            <input type="radio" name="okja_default_staff_style" value="custom" <?php checked( $style, 'custom' ); ?>>
+            <?php esc_html_e( 'Benutzerdefiniert (eigene Farben unten)', 'jhh-posts-block' ); ?>
+        </label>
+    </fieldset>
+    <p class="description"><?php esc_html_e( 'Dieser Style wird für alle Angebote verwendet, außer wenn ein Angebot einen eigenen Style definiert hat.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_color_fields() {
+    $bg = get_option( 'okja_staff_bg_color', '#2b2727' );
+    $text = get_option( 'okja_staff_text_color', '#ffffff' );
+    $accent = get_option( 'okja_staff_accent_color', '#b9aaff' );
+    ?>
+    <table class="form-table" style="margin:0;">
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;width:150px;"><?php esc_html_e( 'Hintergrund', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="text" name="okja_staff_bg_color" value="<?php echo esc_attr( $bg ); ?>" class="okja-color-picker" data-default-color="#2b2727">
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;"><?php esc_html_e( 'Text', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="text" name="okja_staff_text_color" value="<?php echo esc_attr( $text ); ?>" class="okja-color-picker" data-default-color="#ffffff">
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;"><?php esc_html_e( 'Akzent (Links, Linie)', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="text" name="okja_staff_accent_color" value="<?php echo esc_attr( $accent ); ?>" class="okja-color-picker" data-default-color="#b9aaff">
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+
+function okja_render_preview_field() {
+    $bg = get_option( 'okja_staff_bg_color', '#2b2727' );
+    $text = get_option( 'okja_staff_text_color', '#ffffff' );
+    $accent = get_option( 'okja_staff_accent_color', '#b9aaff' );
+    ?>
+    <div id="okja-staff-preview" style="
+        position: relative;
+        background: <?php echo esc_attr( $bg ); ?>;
+        color: <?php echo esc_attr( $text ); ?>;
+        border-radius: 16px;
+        padding: 24px 18px 18px;
+        max-width: 350px;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    ">
+        <div class="okja-preview-topline" style="
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 6px;
+            background: linear-gradient(90deg, <?php echo esc_attr( $accent ); ?>, #ee0979, #8a2be2, #4169e1, #00c6ff);
+        "></div>
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+            <div style="
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+            ">👤</div>
+            <h3 style="margin: 0 0 4px; font-size: 1.3rem;">Max Mustermann</h3>
+            <div style="opacity: 0.9; font-weight: 600; margin-bottom: 4px;">Jugendarbeiter*in</div>
+            <a class="okja-preview-contact" href="#" style="color: <?php echo esc_attr( $accent ); ?>; font-weight: 700; text-decoration: none;">max@example.de</a>
+        </div>
+        <div style="margin-top: 12px; opacity: 0.95; text-align: left; font-size: 0.9rem;">
+            Dies ist eine Beispiel-Biografie. Hier steht eine kurze Beschreibung der Person.
+        </div>
+    </div>
+    <p class="description" style="margin-top: 12px;"><?php esc_html_e( 'Live-Vorschau der Kartenfarben. Änderungen werden sofort angezeigt.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_settings_page() {
+    if ( ! current_user_can( 'manage_options' ) ) return;
+    ?>
+    <div class="wrap">
+        <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+        <form action="options.php" method="post">
+            <?php
+            settings_fields( 'okja_settings_group' );
+            do_settings_sections( 'okja-angebote-settings' );
+            submit_button( __( 'Einstellungen speichern', 'jhh-posts-block' ) );
+            ?>
+        </form>
+    </div>
+    <?php
+}
+
 /*Custom-Fields-Jugendarbeit erstellen*/
 
 /**
@@ -142,13 +383,13 @@ add_action( 'init', function(){
         'show_in_rest'      => false,
         'auth_callback'     => function(){ return current_user_can( 'edit_posts' ); }
     ] );
-    // Staff card style on single page: simple | notebook | aurora
+    // Staff card style on single page: global | simple | notebook | aurora | custom
     register_post_meta( 'angebot', 'jhh_staff_card_style', [
         'single'            => true,
         'type'              => 'string',
         'sanitize_callback' => function( $v ){
             $v = sanitize_key( (string) $v );
-            return in_array( $v, [ 'simple', 'notebook', 'aurora' ], true ) ? $v : 'notebook';
+            return in_array( $v, [ 'global', 'simple', 'notebook', 'aurora', 'custom' ], true ) ? $v : 'global';
         },
         'show_in_rest'      => false,
         'auth_callback'     => function(){ return current_user_can( 'edit_posts' ); }
@@ -194,12 +435,17 @@ function jhh_render_day_times_metabox( $post ) {
 // Staff card style meta box
 function jhh_render_staff_style_metabox( $post ){
     wp_nonce_field( 'jhh_staff_style_save', 'jhh_staff_style_nonce' );
-    $style = get_post_meta( $post->ID, 'jhh_staff_card_style', true );
-    if ( ! in_array( $style, [ 'simple', 'notebook', 'aurora' ], true ) ) $style = 'notebook';
+    $global_default = get_option( 'okja_default_staff_style', 'simple' );
+    $post_style = get_post_meta( $post->ID, 'jhh_staff_card_style', true );
+    $use_global = empty( $post_style ) || $post_style === 'global';
+    $style = $use_global ? $global_default : $post_style;
+    
     echo '<p>' . esc_html__( 'Darstellung der Mitarbeiter-Karte in der Single-Ansicht wählen.', 'jhh-posts-block' ) . '</p>';
-    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="simple"' . checked( $style, 'simple', false ) . '> ' . esc_html__( 'Schlicht (dunkel, mit Farblinie)', 'jhh-posts-block' ) . '</label>';
-    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="notebook"' . checked( $style, 'notebook', false ) . '> ' . esc_html__( 'Papier (Notizbuch) – mit aufgepinntem Foto', 'jhh-posts-block' ) . '</label>';
-    echo '<label style="display:block;"><input type="radio" name="jhh_staff_card_style" value="aurora"' . checked( $style, 'aurora', false ) . '> ' . esc_html__( 'Pastell‑Gradient – ohne Pin', 'jhh-posts-block' ) . '</label>';
+    echo '<label style="display:block;margin-bottom:6px;background:#f0f0f1;padding:8px;border-radius:4px;"><input type="radio" name="jhh_staff_card_style" value="global"' . checked( $use_global, true, false ) . '> ' . sprintf( esc_html__( 'Global (%s) – Einstellung unter Einstellungen > OKJA Angebote', 'jhh-posts-block' ), esc_html( $global_default ) ) . '</label>';
+    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="simple"' . checked( $post_style, 'simple', false ) . '> ' . esc_html__( 'Schlicht (dunkel, mit Farblinie)', 'jhh-posts-block' ) . '</label>';
+    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="notebook"' . checked( $post_style, 'notebook', false ) . '> ' . esc_html__( 'Papier (Notizbuch) – mit aufgepinntem Foto', 'jhh-posts-block' ) . '</label>';
+    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="aurora"' . checked( $post_style, 'aurora', false ) . '> ' . esc_html__( 'Pastell‑Gradient – ohne Pin', 'jhh-posts-block' ) . '</label>';
+    echo '<label style="display:block;"><input type="radio" name="jhh_staff_card_style" value="custom"' . checked( $post_style, 'custom', false ) . '> ' . esc_html__( 'Benutzerdefiniert (Farben aus Einstellungen)', 'jhh-posts-block' ) . '</label>';
 }
 
 // Save handler
@@ -222,8 +468,8 @@ add_action( 'save_post_angebot', function( $post_id ) {
     update_post_meta( $post_id, 'jhh_day_times', $san_times );
     // Save staff card style (separate nonce, tolerate if meta box hidden)
     if ( isset( $_POST['jhh_staff_style_nonce'] ) && wp_verify_nonce( $_POST['jhh_staff_style_nonce'], 'jhh_staff_style_save' ) ) {
-        $style = isset( $_POST['jhh_staff_card_style'] ) ? sanitize_key( (string) $_POST['jhh_staff_card_style'] ) : 'notebook';
-        if ( ! in_array( $style, [ 'simple', 'notebook', 'aurora' ], true ) ) $style = 'notebook';
+        $style = isset( $_POST['jhh_staff_card_style'] ) ? sanitize_key( (string) $_POST['jhh_staff_card_style'] ) : 'global';
+        if ( ! in_array( $style, [ 'simple', 'notebook', 'aurora', 'global' ], true ) ) $style = 'global';
         update_post_meta( $post_id, 'jhh_staff_card_style', $style );
     }
 } );
@@ -385,6 +631,15 @@ add_action( 'init', function() {
         JHH_PB_URL . 'assets/carousel.js',
         [],
         '1.3.3',
+        true
+    );
+
+    // Frontend tilt effect script
+    wp_register_script(
+        'jhh-posts-tilt',
+        JHH_PB_URL . 'assets/tilt-effect.js',
+        [],
+        '1.0.0',
         true
     );
 
@@ -643,6 +898,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
             'carouselArrows'       => [ 'type' => 'boolean', 'default' => true ],
             'showImage'       => [ 'type' => 'boolean', 'default' => true ],
             'imageSize'       => [ 'type' => 'string',  'default' => 'medium' ],
+            'imageHoverEffect' => [ 'type' => 'string',  'default' => 'none' ],
             'showTitle'       => [ 'type' => 'boolean', 'default' => true ],
             'showDate'        => [ 'type' => 'boolean', 'default' => true ],
             'showAuthor'      => [ 'type' => 'boolean', 'default' => false ],
@@ -785,6 +1041,13 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
 
     $show_image    = ! empty( $attributes['showImage'] );
     $image_size    = isset( $attributes['imageSize'] ) ? sanitize_key( $attributes['imageSize'] ) : 'medium';
+    $image_hover   = isset( $attributes['imageHoverEffect'] ) ? sanitize_key( $attributes['imageHoverEffect'] ) : 'none';
+    
+    // Enqueue tilt script if tilt effect is used
+    if ( in_array( $image_hover, [ 'tilt', 'tilt-zoom' ], true ) ) {
+        wp_enqueue_script( 'jhh-posts-tilt' );
+    }
+    
     $show_title    = ! empty( $attributes['showTitle'] );
     $show_date     = ! empty( $attributes['showDate'] );
     $show_author   = ! empty( $attributes['showAuthor'] );
@@ -1079,8 +1342,10 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
             if ( $show_image && has_post_thumbnail( $post_id ) ) {
                 $thumb = get_the_post_thumbnail( $post_id, $image_size, [ 'class' => 'jhh-post-thumb', 'loading' => 'lazy' ] );
                 if ( $thumb ) {
+                    $hover_class = ( $image_hover && $image_hover !== 'none' ) ? ' jhh-hover-' . esc_attr( $image_hover ) : '';
                     $image_html = sprintf(
-                        '<a class="jhh-post-image" href="%s" aria-label="%s">%s</a>',
+                        '<a class="jhh-post-image%s" href="%s" aria-label="%s">%s</a>',
+                        $hover_class,
                         esc_url( $permalink_with_back ),
                         esc_attr( get_the_title() ),
                         $thumb

@@ -32,7 +32,7 @@
   }
 
   registerBlockType("jhh/posts", {
-    title: "JHH Posts",
+    title: "OKJA Angebote",
     icon: "screenoptions",
     category: "widgets",
     attributes: {
@@ -52,6 +52,7 @@
   backUrl: { type: 'string', default: '' },
       showImage: { type: 'boolean', default: true },
       imageSize: { type: 'string', default: 'medium' },
+      imageHoverEffect: { type: 'string', default: 'none' }, // none, tilt, zoom, glow
       showTitle: { type: 'boolean', default: true },
       showDate: { type: 'boolean', default: true },
       showAuthor: { type: 'boolean', default: false },
@@ -212,6 +213,18 @@
               ],
               onChange: (val) => setAttributes({ imageSize: val }),
             }),
+            el(SelectControl, {
+              label: "Bild Hover-Effekt",
+              value: a.imageHoverEffect || 'none',
+              options: [
+                { label: "Keiner", value: "none" },
+                { label: "Kippen (Tilt)", value: "tilt" },
+                { label: "Vergrößern (Zoom)", value: "zoom" },
+                { label: "Leuchten (Glow)", value: "glow" },
+                { label: "Kippen + Zoom", value: "tilt-zoom" },
+              ],
+              onChange: (val) => setAttributes({ imageHoverEffect: val }),
+            }),
             el(ToggleControl, {
               label: "Titel",
               checked: !!a.showTitle,
@@ -353,7 +366,21 @@
               help: 'Diese URL wird als ?back=... an den Weiterlesen-/Titel-Link angehängt und in der Single-Ansicht für den Zurück-Button verwendet.',
               value: a.backUrl || '',
               onChange: (val) => setAttributes({ backUrl: val })
-            })
+            }),
+            el('div', { 
+              style: { 
+                marginTop: '16px', 
+                padding: '12px', 
+                backgroundColor: '#f0f0f1', 
+                borderRadius: '4px',
+                borderLeft: '4px solid #007cba'
+              } 
+            },
+              el('strong', null, 'Tipp: '),
+              el('span', null, 'Den globalen Staff-Card Style für alle Angebote findest du unter '),
+              el('em', null, 'Einstellungen → OKJA Angebote'),
+              el('span', null, '.')
+            )
           )
         ),
         // Vorschau im Editor
@@ -370,7 +397,7 @@
   // New Block: JHH Team
   // ======================
   registerBlockType("jhh/team", {
-    title: "JHH Team",
+    title: "OKJA Team",
     icon: "groups",
     category: "widgets",
     attributes: {

@@ -12,6 +12,7 @@ function jhh_pb_render( $attrs, $content ) {
         'gap' => 16,
         'showImage' => true,
         'imageSize' => 'medium',
+        'imageHoverEffect' => 'none',
         'showTitle' => true,
         'showDate' => true,
         'showAuthor' => false,
@@ -118,7 +119,11 @@ function jhh_pb_render( $attrs, $content ) {
                     switch ( $el ) {
                         case 'image':
                             if ( $a['showImage'] && has_post_thumbnail() ) {
-                                echo '<a class="jhh-thumb" href="' . esc_url( get_permalink() ) . '">';
+                                $hover_class = '';
+                                if ( ! empty( $a['imageHoverEffect'] ) && $a['imageHoverEffect'] !== 'none' ) {
+                                    $hover_class = ' jhh-hover-' . esc_attr( $a['imageHoverEffect'] );
+                                }
+                                echo '<a class="jhh-thumb' . $hover_class . '" href="' . esc_url( get_permalink() ) . '">';
                                 the_post_thumbnail( esc_attr( $a['imageSize'] ) );
                                 echo '</a>';
                             }
