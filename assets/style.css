@@ -422,7 +422,8 @@
 .jhh-slide-overlay{ position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:10px; padding:28px; color:#fff; }
 .jhh-slide-title{ font-size: clamp(1.4rem, 2.8vw, 2.2rem); margin:0; }
 .jhh-slide-excerpt{ font-size: clamp(.95rem, 1.6vw, 1.05rem); max-width: 70ch; margin:0; }
-.jhh-slide-readmore{ display:inline-block; margin-top:8px; padding:8px 14px; background:#fff; color:#111; border-radius:999px; text-decoration:none; font-weight:700; }
+.jhh-slide-readmore{ display:inline-block; margin-top:8px; padding:8px 14px; background:#fff !important; color:#111 !important; border-radius:999px; text-decoration:none; font-weight:700; }
+.jhh-slide-readmore:hover{ background:#f0f0f0 !important; color:#000 !important; }
 .jhh-carousel-prev,.jhh-carousel-next{ position:absolute; top:50%; transform: translateY(-50%); background:transparent; color:#fff; border:none; padding:10px; width:auto; height:auto; border-radius:0; cursor:pointer; z-index:2; font-size:28px; line-height:1; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .jhh-carousel-prev{ left:6px; } .jhh-carousel-next{ right:6px; }
 .jhh-carousel-prev:hover,.jhh-carousel-next:hover{ color:#fff; opacity:.9; }
