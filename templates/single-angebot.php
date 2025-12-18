@@ -20,8 +20,20 @@ while ( have_posts() ) : the_post();
     // Get hero animation settings
     $hero_animation = get_option( 'okja_hero_animation', 'none' );
     $hero_hover = get_option( 'okja_hero_hover', 'none' );
+    
+    // Opulente kombinierte Animationen (werden auf den Hero-Container angewendet)
+    $combined_animations = [ 'cinematic', 'parallax-drift', 'explosive', 'vortex', 'aurora', 'spotlight', 'glitch-storm' ];
+    $is_combined = in_array( $hero_animation, $combined_animations, true );
+    
+    // Hero container classes
+    $hero_classes = 'jhh-hero';
+    if ( $is_combined && $hero_animation !== 'none' ) {
+        $hero_classes .= ' anim-' . esc_attr( $hero_animation );
+    }
+    
+    // Title classes (nur bei einfachen Animationen)
     $title_classes = 'jhh-hero-title';
-    if ( $hero_animation !== 'none' ) {
+    if ( ! $is_combined && $hero_animation !== 'none' ) {
         $title_classes .= ' anim-' . esc_attr( $hero_animation );
     }
     if ( $hero_hover !== 'none' ) {
@@ -32,7 +44,7 @@ while ( have_posts() ) : the_post();
 
 <main class="jhh-single-angebot" id="main">
     <?php if ( $hero_url ) : ?>
-    <section class="jhh-hero" style="background-image:url('<?php echo esc_url( $hero_url ); ?>')">
+    <section class="<?php echo esc_attr( $hero_classes ); ?>" style="background-image:url('<?php echo esc_url( $hero_url ); ?>')">
         <div class="jhh-hero-overlay">
             <h1 class="<?php echo esc_attr( $title_classes ); ?>" data-text="<?php echo esc_attr( $title_text ); ?>"><?php echo esc_html( $title_text ); ?></h1>
         </div>

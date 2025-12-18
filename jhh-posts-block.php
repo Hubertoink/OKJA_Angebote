@@ -162,7 +162,11 @@ add_action( 'admin_init', function() {
         'type' => 'string',
         'default' => 'none',
         'sanitize_callback' => function( $val ) {
-            $allowed = [ 'none', 'fade-in-up', 'slide-in-left', 'scale-pop', 'typewriter', 'glitch', 'wave', 'glow-pulse' ];
+            $allowed = [ 
+                'none', 'fade-in-up', 'slide-in-left', 'scale-pop', 'typewriter', 'glitch', 'wave', 'glow-pulse',
+                // Opulente kombinierte Animationen
+                'cinematic', 'parallax-drift', 'explosive', 'vortex', 'aurora', 'spotlight', 'glitch-storm'
+            ];
             return in_array( $val, $allowed, true ) ? $val : 'none';
         }
     ] );
@@ -359,15 +363,37 @@ function okja_render_hero_animation_field() {
         'wave'          => __( '🌊 Wave – Sanftes Wippen (dauerhaft)', 'jhh-posts-block' ),
         'glow-pulse'    => __( '✨ Glow Pulse – Pulsierendes Leuchten', 'jhh-posts-block' ),
     ];
+    $combined_options = [
+        'cinematic'      => __( '🎬 Cinematic – Ken Burns Zoom + Epic Text Reveal', 'jhh-posts-block' ),
+        'parallax-drift' => __( '🌙 Parallax Drift – Schwebendes Bild + Traumhafte Schrift', 'jhh-posts-block' ),
+        'explosive'      => __( '💣 Explosive – Burst Zoom + Impact Text', 'jhh-posts-block' ),
+        'vortex'         => __( '🌀 Vortex – Spiral Zoom + Drehende Schrift', 'jhh-posts-block' ),
+        'aurora'         => __( '🌈 Aurora Borealis – Farbwechsel + Ätherische Schrift', 'jhh-posts-block' ),
+        'spotlight'      => __( '🔦 Spotlight – Dramatischer Lichtstrahl + Bold Reveal', 'jhh-posts-block' ),
+        'glitch-storm'   => __( '⚡ Glitch Storm – Digitales Chaos + Verzerrte Schrift', 'jhh-posts-block' ),
+    ];
     ?>
-    <select name="okja_hero_animation">
-        <?php foreach ( $options as $value => $label ) : ?>
-            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $animation, $value ); ?>>
-                <?php echo esc_html( $label ); ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-    <p class="description"><?php esc_html_e( 'Wird beim Laden der Seite einmal abgespielt (außer Wave/Glow Pulse = dauerhaft).', 'jhh-posts-block' ); ?></p>
+    <fieldset>
+        <legend style="font-weight:600;margin-bottom:10px;"><?php esc_html_e( 'Einfache Text-Animationen:', 'jhh-posts-block' ); ?></legend>
+        <select name="okja_hero_animation" id="okja_hero_animation" style="min-width:350px;">
+            <?php foreach ( $options as $value => $label ) : ?>
+                <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $animation, $value ); ?>>
+                    <?php echo esc_html( $label ); ?>
+                </option>
+            <?php endforeach; ?>
+            <optgroup label="<?php esc_attr_e( '🎭 Opulente Kombinationen (Bild + Text)', 'jhh-posts-block' ); ?>">
+                <?php foreach ( $combined_options as $value => $label ) : ?>
+                    <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $animation, $value ); ?>>
+                        <?php echo esc_html( $label ); ?>
+                    </option>
+                <?php endforeach; ?>
+            </optgroup>
+        </select>
+    </fieldset>
+    <p class="description" style="margin-top:8px;">
+        <?php esc_html_e( 'Einfache Animationen: Nur der Titel wird animiert.', 'jhh-posts-block' ); ?><br>
+        <?php esc_html_e( 'Opulente Kombinationen: Hintergrundbild UND Titel werden gemeinsam animiert.', 'jhh-posts-block' ); ?>
+    </p>
     <?php
 }
 
