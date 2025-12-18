@@ -1007,6 +1007,13 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
 /* Single page: ensure light/white title text in light mode as well */
 .jhh-single-angebot .jhh-related-title{ color:#fff !important; }
 
+/* Mobile: show only 4 related posts instead of 5 */
+@media (max-width: 780px) {
+  .jhh-related-grid .jhh-related-item:nth-child(5) {
+    display: none;
+  }
+}
+
 /* ==========================================
   NEW: Simple staff card variant (dark, with rainbow top line)
   ========================================== */

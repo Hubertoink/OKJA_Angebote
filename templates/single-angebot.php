@@ -206,7 +206,7 @@ while ( have_posts() ) : the_post();
         $rel_args = [
             'post_type' => 'angebot',
             'post_status' => 'publish',
-            'posts_per_page' => 6,
+            'posts_per_page' => 5,
             'post__not_in' => [ $post_id ],
             'ignore_sticky_posts' => true,
             'no_found_rows' => true,
