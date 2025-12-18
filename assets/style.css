@@ -1,0 +1,871 @@
+/* Funky headline font for team names */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap');
+/* ==========================================
+   Layout-Grundstruktur
+   ========================================== */
+.jhh-posts-block {
+  display: grid;
+  gap: 16px;
+}
+
+.jhh-layout-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.jhh-layout-list {
+  grid-template-columns: 1fr;
+}
+
+/* ==========================================
+   Karten-Design
+   ========================================== */
+.jhh-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--nv-dark-bg);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+/* ==========================================
+   Thumbnail
+   ========================================== */
+.jhh-thumb {
+  display: block;
+  margin: -12px -14px 8px;
+  overflow: hidden;
+}
+.jhh-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+/* ==========================================
+   Titel
+   ========================================== */
+.jhh-title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+.jhh-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.jhh-title a:hover {
+  color: #005bbb;
+}
+
+/* ==========================================
+   Meta-Infos
+   ========================================== */
+.jhh-meta {
+  font-size: .85rem;
+  color: #666;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* ==========================================
+   Taxonomien
+   ========================================== */
+.jhh-tax-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+
+/* ==========================================
+   Basis-Badge (neutral; Farben nur über Term-Regeln unten)
+   ========================================== */
+.jhh-badge {
+  display: inline-block;
+  font-size: .78rem;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 2px;
+  margin-bottom: 2px;
+
+  background-color: transparent;
+  color: inherit;
+}
+
+/* ==========================================
+   Jugendarbeit-Badge (neutral, ohne CSS-Variablen)
+   ========================================== */
+.jhh-badge-jug {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+	background-color: #000;
+  background-image:
+    linear-gradient(#000, #000), /* Innenfläche (fix weiß) */
+    linear-gradient(90deg, #ff6a00, #ee0979, #00c6ff); /* Rand-Farbverlauf */
+  /* Text immer weiß – unabhängig vom Theme */
+  color: #fff;
+}
+
+
+
+/* ==========================================
+   Wochentage (neutrale Defaults, ohne CSS-Variablen)
+   ========================================== */
+.jhh-badge-ta {
+  display: inline-block;
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+
+
+/* ==========================================
+   Auszug
+   ========================================== */
+.jhh-excerpt {
+  margin-bottom: 10px;
+  color: inherit;
+}
+
+/* ==========================================
+   Gradientenlinie (Rainbow Gradient wie "Marc" Bild)
+   ========================================== */
+.jhh-gradient-line {
+  height: 3px;
+  /* Regenbogen-Gradient wie im "Marc"-Beispiel */
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff, #00ff7f, #ffd700, #ff6a00);
+  border-radius: 2px;
+  width: 100%;
+}
+
+/* ==========================================
+   Einheitliche Bildhöhe (Cropping)
+   ========================================== */
+.jhh-post-image {
+  display: block;
+}
+.jhh-post-image img.jhh-post-thumb {
+  width: 100%;
+  height: 340px; /* einheitliche Höhe */
+  object-fit: cover; /* schneidet Bilder sauber zu */
+  display: block;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+@media (max-width: 1000px) {
+  .jhh-post-image img.jhh-post-thumb { height: 280px; }
+}
+@media (max-width: 600px) {
+  .jhh-post-image img.jhh-post-thumb { height: 220px; }
+}
+
+/* ==========================================
+   Weiterlesen Button
+   ========================================== */
+.jhh-readmore {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #005bbb;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.jhh-readmore:hover {
+  background-color: #004499;
+}
+
+/* ==========================================
+   Editor-Reorder UI
+   ========================================== */
+.jhh-reorder-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.jhh-reorder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+.jhh-reorder-label {
+  font-size: 13px;
+}
+.jhh-reorder-actions .components-button {
+  margin-left: 4px;
+}
+
+/* ==========================================
+   Responsive Anpassung
+   ========================================== */
+
+/* ==========================================
+   Responsive Anpassung
+   ========================================== */
+
+
+/* Tablet: 2 Spalten (zwischen 601px und 1000px) */
+@media (max-width: 1000px) {
+  .jhh-posts {
+    grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  }
+}
+
+/* Smartphone: 1 Spalte (bis 600px) */
+@media (max-width: 600px) {
+  .jhh-posts {
+    grid-template-columns: 1fr !important; 
+  }
+}
+
+.jhh-post-readmore {
+  display: block;
+  margin: 0 auto;
+}
+/* ==========================================
+   Titel link deaktivieren
+   ========================================== */
+.jhh-post-title a {
+    pointer-events: none;       /* deaktiviert Klick */
+    text-decoration: none;      /* entfernt Unterstreichung */
+    color: var(--nv-text-color); /* setzt die gewünschte Farbe */
+    cursor: default;            /* zeigt normalen Cursor statt Hand */	
+	
+}
+.jhh-post-title {
+    text-align: center; /* Zentriert den Inhalt innerhalb des h3 */
+}
+
+/* ==========================================
+   LISTENLAYOUT – alternierende Reihen
+   ========================================== */
+.jhh-posts-block.layout-list .jhh-posts {
+  display: flex !important;
+  flex-direction: column;
+  gap: 24px;
+}
+.jhh-list-item .jhh-list-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+.jhh-list-item.image-right .jhh-list-row { grid-template-columns: 1fr 1.1fr; }
+.jhh-list-item.image-right .jhh-list-media { order: 2; }
+.jhh-list-item.image-right .jhh-list-content { order: 1; }
+.jhh-list-media a.jhh-post-image { display:block; border-radius: 12px; overflow:hidden; }
+.jhh-list-content { display:flex; flex-direction:column; gap:10px; }
+.jhh-list-content .jhh-post-title { text-align:left; margin:0; }
+.jhh-list-content .jhh-post-taxonomies { margin-top:6px; }
+.jhh-list-content .jhh-post-excerpt { margin: 4px 0 8px; }
+.jhh-list-content .jhh-post-readmore { align-self:flex-start; }
+/* Base: hidden BG layer for list items (used on mobile) */
+.jhh-list-item .jhh-list-bg{ display:none; }
+@media (max-width: 900px){
+  .jhh-list-item .jhh-list-row { grid-template-columns: 1fr; }
+  /* Ensure the alternating image-right variant also collapses to one column */
+  .jhh-list-item.image-right .jhh-list-row { grid-template-columns: 1fr !important; }
+  .jhh-list-item.image-right .jhh-list-media { order: 0; }
+  /* Mobile overlay mode: use blurred background image inside the card */
+  .jhh-list-item.has-bg{ position:relative; overflow:hidden; border-radius:12px; }
+  .jhh-list-item.has-bg .jhh-list-bg{ display:block; position:absolute; inset:0; background-position:center; background-size:cover; filter: blur(10px) saturate(1.05); transform: scale(1.08); }
+  .jhh-list-item.has-bg::after{ content:''; position:absolute; inset:0; background: rgba(0,0,0,.35); }
+  .jhh-list-item.has-bg .jhh-list-media{ display:none; }
+  .jhh-list-item.has-bg .jhh-list-content{ position:relative; z-index:1; color:#fff; padding: 16px 16px 18px; }
+  /* More top padding for the title on mobile */
+  .jhh-list-item.has-bg .jhh-list-content .jhh-post-title{ padding-top: 8px; }
+  .jhh-list-item.has-bg .jhh-list-content .jhh-post-title a{ color:#fff !important; }
+  /* Description with left padding comes from content padding; keep color readable */
+  .jhh-list-item.has-bg .jhh-post-excerpt{ color:#fff; }
+  /* Add some space below the readmore button */
+  .jhh-list-item.has-bg .jhh-post-readmore{ margin-bottom: 10px; }
+}
+
+/* ==========================================
+   CAROUSEL – Slides, Overlay, Navigation
+   ========================================== */
+.jhh-carousel{ position:relative; overflow:hidden; border-radius:12px; }
+.jhh-carousel-track{ display:flex; transition: transform .5s ease; will-change:transform; }
+.jhh-slide{ position:relative; min-width:100%; height:420px; overflow:hidden; }
+.jhh-slide-bg{ position:absolute; inset:0; background-position:center; background-size:cover; filter: blur(10px) saturate(1.05); transform: scale(1.08); }
+.jhh-slide::after{ content:''; position:absolute; inset:0; background: rgba(0,0,0,.35); }
+.jhh-slide-overlay{ position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:10px; padding:28px; color:#fff; }
+.jhh-slide-title{ font-size: clamp(1.4rem, 2.8vw, 2.2rem); margin:0; }
+.jhh-slide-excerpt{ font-size: clamp(.95rem, 1.6vw, 1.05rem); max-width: 70ch; margin:0; }
+.jhh-slide-readmore{ display:inline-block; margin-top:8px; padding:8px 14px; background:#fff; color:#111; border-radius:999px; text-decoration:none; font-weight:700; }
+.jhh-carousel-prev,.jhh-carousel-next{ position:absolute; top:50%; transform: translateY(-50%); background:transparent; color:#fff; border:none; padding:10px; width:auto; height:auto; border-radius:0; cursor:pointer; z-index:2; font-size:28px; line-height:1; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.jhh-carousel-prev{ left:6px; } .jhh-carousel-next{ right:6px; }
+.jhh-carousel-prev:hover,.jhh-carousel-next:hover{ color:#fff; opacity:.9; }
+.jhh-carousel-prev:focus,.jhh-carousel-next:focus{ outline: 2px solid #fff; outline-offset: 2px; border-radius:4px; }
+.jhh-carousel-dots{ position:absolute; bottom:10px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:2; }
+.jhh-carousel-dots button{ display:block; padding:0; width:6px; height:6px; border-radius:50%; border:none; background: rgba(255,255,255,.6); cursor:pointer; }
+.jhh-carousel-dots button[aria-current="true"]{ background: #fff; }
+@media (max-width: 780px){
+  .jhh-slide{ height: 320px; }
+  .jhh-slide-overlay{ align-items:center; text-align:center; }
+}
+
+/* ==========================================
+   SINGLE: Angebot – Hero, Staff, Related
+   ========================================== */
+.jhh-single-angebot .jhh-hero{ position:relative; min-height: 420px; background-size: cover; background-position: center; }
+.jhh-single-angebot .jhh-hero::after{ content:''; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55)); }
+/* Center the hero title horizontally and vertically */
+.jhh-single-angebot .jhh-hero-overlay{ position:relative; z-index:1; height:100%; display:flex; align-items:center; justify-content:center; padding: 24px 18px; text-align:center;
+  /* keep title away from fixed header/navigation */
+  padding-top: calc( 72px + 18px );
+  box-sizing: border-box;
+}
+.jhh-single-angebot .jhh-hero-title{ margin:0; color:#fff; font-size: clamp(3rem, 9vw, 6rem); line-height:1.05; 
+  /* move title slightly lower to avoid header/logo overlap */
+  margin-top: clamp(8px, 8vh, 120px);
+}
+
+/* Smaller offset on narrow screens (mobile) */
+@media (max-width: 900px) {
+  .jhh-single-angebot .jhh-hero-overlay{ padding-top: calc( 56px + 12px ); padding-left: 14px; padding-right:14px; }
+  .jhh-single-angebot .jhh-hero-title{ font-size: clamp(2.4rem, 9.5vw, 3.6rem); margin-top: clamp(8px, 6vh, 80px); }
+}
+
+/* If the theme defines a header height CSS variable, you can override the padding-top
+  e.g. :root { --site-header-height: 88px } and then set: .jhh-single-angebot .jhh-hero-overlay { padding-top: calc(var(--site-header-height) + 18px); } */
+.jhh-single-wrap{ max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+.jhh-back-link{ display:inline-block; margin-bottom: 16px; text-decoration:none; background:#fff; color:#111; padding:6px 12px; border-radius:999px; font-weight:700; }
+/* Dark mode: back link gets dark background with white text */
+@media (prefers-color-scheme: dark){
+  .jhh-back-link{ background:#2b2727; color:#fff; }
+}
+html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
+
+/* Staff cards */
+.jhh-staff{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 18px; margin: 28px 0; }
+.jhh-staff-card{ position:relative; background: #2b2727; color:#fff; border-radius: 16px; padding: 18px; overflow:hidden; }
+.jhh-staff-topline{ position:absolute; left:0; right:0; top:0; height:6px; background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff, #00ff7f, #ffd700, #ff6a00); }
+.jhh-staff-inner{ display:flex; gap: 14px; align-items:center; }
+.jhh-staff-avatar{ border-radius: 50%; width: 116px; height:116px; object-fit:cover; }
+.jhh-staff-name{ margin:0; font-size: 1.4rem; }
+.jhh-staff-role{ opacity:.9; margin-top:4px; font-weight:600; }
+.jhh-staff-contact{ color:#b9aaff; margin-top:4px; font-weight:700; }
+.jhh-staff-bio{ margin-top:10px; opacity:.95; }
+
+/* Related offers */
+.jhh-related{ margin: 36px 0 20px; }
+.jhh-related h3{ margin: 0 0 12px; }
+.jhh-related-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 12px; }
+.jhh-related-item{ display:block; text-decoration:none; background:#1e1b1b; border-radius:10px; overflow:hidden; }
+.jhh-related-thumb{ width:100%; height: 120px; object-fit: cover; display:block; }
+.jhh-related-title{ display:block; padding:8px 10px; color: var(--nv-text-color, #eee); font-weight:700; }
+/* Single page: ensure light/white title text in light mode as well */
+.jhh-single-angebot .jhh-related-title{ color:#fff !important; }
+
+/* ==========================================
+  NEW: Simple staff card variant (dark, with rainbow top line)
+  ========================================== */
+.jhh-staff-card.bg-simple{ background:#2b2727; color:#fff; }
+.jhh-staff-card.bg-simple .jhh-staff-contact{ color:#b9aaff; }
+
+/* Single page: staff one-column layout (stacked) */
+.jhh-single-angebot .jhh-staff{ grid-template-columns: 1fr; }
+
+/* ==========================================
+   Utility: Notebook paper background
+   - reusable on staff cards and post cards
+   ========================================== */
+.jhh-staff-card.bg-notebook{
+  /* Base light paper tone */
+  background-color: #f1f1f1;
+  /* Red margin line at ~56px, horizontal light rules every 30px */
+  background-image:
+    linear-gradient(90deg, transparent 56px, #ffb4b8 56px, #ffb4b8 58px, transparent 58px),
+    linear-gradient(#e1e1e1 0.1em, transparent 0.1em);
+  background-size: 100% 30px;
+  /* Keep existing rounding, add subtle border */
+  border: 1px solid rgba(0,0,0,0.08);
+  color: #1a1a1a;
+  /* allow avatar/pin to protrude outside the card */
+  overflow: visible;
+}
+
+/* Notebook: make avatar look like a pinned passport photo */
+.jhh-staff-card.bg-notebook .jhh-staff-inner{ position:relative; align-items:flex-start; }
+.jhh-staff-card.bg-notebook .jhh-staff-avatar{
+  border-radius: 10px;        /* square-ish corners instead of circle */
+  padding: 6px;               /* white frame */
+  background: #fff;           /* polaroid look */
+  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  transform: rotate(-2.2deg); /* slightly skewed like pinned */
+  transform-origin: 20% 10%;
+  margin-top: -42px;          /* protrude above top edge like pastel styles */
+}
+/* A tiny pin above the photo (pure CSS), scoped to notebook only */
+.jhh-staff-card.bg-notebook .jhh-staff-inner::before{
+  content: '';
+  position: absolute;
+  /* place roughly at the top center of the photo (116px wide + 2*6px padding) */
+  left: 62px; /* tweak visually if needed */
+  top: -4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff8a80 0 45%, #d14343 46% 65%, #7a1e1e 66% 100%);
+  box-shadow: 0 2px 0 rgba(0,0,0,.25);
+}
+
+/* Staff Card: animated pastel gradient background (aurora) */
+.jhh-staff-card.bg-aurora{
+  position: relative;
+  overflow: hidden;
+  color:#111;
+  background: radial-gradient(circle, rgba(255,255,255,0.2), rgba(0,0,0,0.1));
+  /* Prevent ancestor blending from affecting our layers */
+  isolation: isolate;
+}
+.jhh-staff-card.bg-aurora::before,
+.jhh-staff-card.bg-aurora::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, #ff9aa2, #ffb7b2, #ffdac1, #e2f0cb, #a2e4ff, #c9afff, #ffb7b2, #ff9aa2);
+  filter: blur(36px);
+  opacity:.8;
+  pointer-events: none;
+}
+.jhh-staff-card.bg-aurora::after{ opacity:.55; filter: blur(28px); }
+.jhh-staff-card.bg-aurora > *{ position:relative; z-index:1; }
+.jhh-staff-card.bg-aurora .jhh-staff-contact{ color:#0b3a55; }
+
+/* Keep aurora look stable in dark mode/themes */
+@media (prefers-color-scheme: dark){
+  .jhh-staff-card.bg-aurora{
+    /* avoid blackening in dark theme – use light radial wash instead of black */
+    background: radial-gradient(circle, rgba(255,255,255,0.22), rgba(255,255,255,0.06));
+  }
+}
+/* Neve dark attribute override */
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora{
+  background: radial-gradient(circle, rgba(255,255,255,0.22), rgba(255,255,255,0.06));
+}
+
+/* Text color overrides for readability on light background */
+.jhh-staff-card.bg-notebook,
+.jhh-staff-card.bg-notebook .jhh-staff-meta,
+.jhh-staff-card.bg-notebook .jhh-staff-name,
+.jhh-staff-card.bg-notebook .jhh-staff-role,
+.jhh-staff-card.bg-notebook .jhh-staff-bio,
+.jhh-staff-card.bg-notebook p,
+.jhh-staff-card.bg-notebook a{
+  color:#1a1a1a !important;
+}
+.jhh-staff-card.bg-notebook .jhh-staff-contact{ color:#0b3a55 !important; }
+
+/* Single: Notebook layout should not show the rainbow top line */
+.jhh-staff-card.bg-notebook .jhh-staff-topline{ display:none !important; }
+
+/* removed post-card backgrounds; the notebook style is scoped to staff cards only */
+
+/* Dark-mode: keep notebook light for contrast */
+@media (prefers-color-scheme: dark){
+  .jhh-staff-card.bg-notebook{
+    background-color:#f3f3f3;
+    background-image:
+      linear-gradient(90deg, transparent 56px, #ffb4b8 56px, #ff9aa2 58px, transparent 58px),
+      linear-gradient(#e5e5e5 0.1em, transparent 0.1em);
+  }
+}
+
+/* ==========================================
+   TEAM BLOCK – Grid/List Karten
+   ========================================== */
+.jhh-team{ display:block; /* layout width/columns handled inline from PHP */ }
+/* Base card */
+.jhh-team-card{ position:relative; background:#2b2727; color:#fff; border-radius:16px; padding:26px 18px 18px; overflow:visible; }
+/* Dark mode card (explicit) */
+.jhh-team-card.bg-dark{ background:#2b2727; color:#fff; }
+/* Simple = dark card with slim rainbow line on top */
+.jhh-team-card.bg-simple{ position:relative; background:#2b2727; color:#fff; }
+.jhh-team-card.bg-simple::before{
+  content:""; position:absolute; left:0; right:0; top:0; height:6px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff, #00ff7f, #ffd700, #ff6a00);
+  border-top-left-radius:16px; border-top-right-radius:16px;
+}
+.jhh-team-card.bg-simple .jhh-team-contact{ color:#b9aaff; }
+/* Pastel presets (light mode) */
+/* Palette requested: #f8edeb, #ece4db, #fcd5ce, #ffe5ec */
+.jhh-team-card.bg-blue{   background: linear-gradient(135deg, #f8edeb, #ece4db); color:#1a1a1a; }
+.jhh-team-card.bg-purple{ background: linear-gradient(135deg, #fcd5ce, #ffe5ec); color:#1a1a1a; }
+.jhh-team-card.bg-sunset{ background: linear-gradient(135deg, #f8edeb, #fcd5ce); color:#1a1a1a; }
+.jhh-team-card.bg-rainbow{ background: linear-gradient(135deg, #ece4db, #ffe5ec); color:#1a1a1a; }
+/* No background option */
+.jhh-team-card.bg-none{ background: rgba(0,0,0,.02); color:#1a1a1a; border: 1px solid rgba(0,0,0,.08); }
+.jhh-team-card.bg-none,
+.jhh-team-card.bg-none .jhh-team-meta,
+.jhh-team-card.bg-none .jhh-team-name,
+.jhh-team-card.bg-none .jhh-team-role,
+.jhh-team-card.bg-none .jhh-team-bio,
+.jhh-team-card.bg-none p,
+.jhh-team-card.bg-none a{ color:#1a1a1a !important; }
+.jhh-team-card.bg-none .jhh-team-role,
+.jhh-team-card.bg-none .jhh-team-bio{ opacity:1; }
+.jhh-team-inner{ display:flex; gap:18px; align-items:flex-start; }
+.jhh-team-avatar{ border-radius:18px; width:150px; height:150px; object-fit:cover; flex:0 0 150px; margin-top:-42px; box-shadow: 0 8px 24px rgba(0,0,0,.18); 
+  /* Smooth hover tilt */
+  transition: transform .25s ease, box-shadow .25s ease; transform-origin: center left; will-change: transform;
+}
+/* Hover tilt for Team card */
+.jhh-team-card:hover .jhh-team-avatar,
+.jhh-team-card:focus-within .jhh-team-avatar{ transform: rotate(-3deg) translateX(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.22); }
+@media (prefers-reduced-motion: reduce){
+  .jhh-team-avatar{ transition:none; }
+}
+.jhh-team-meta{ display:flex; flex-direction:column; gap:4px; }
+.jhh-team-name{ margin:0 0 2px; font-family:'Baloo 2', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; font-size: clamp(1.8rem, 4.5vw, 2.6rem); line-height:1; letter-spacing: .5px; }
+.jhh-team-role{ opacity:.9; font-weight:600; }
+/* Contact color tuned for contrast on light vs dark cards */
+.jhh-team-contact{ color:#b9aaff; font-weight:700; }
+.jhh-team-card.bg-blue .jhh-team-contact,
+.jhh-team-card.bg-purple .jhh-team-contact,
+.jhh-team-card.bg-sunset .jhh-team-contact,
+.jhh-team-card.bg-rainbow .jhh-team-contact,
+.jhh-team-card.bg-none .jhh-team-contact{ color:#0b3a55; }
+.jhh-team-bio{ margin-top:10px; opacity:.95; }
+.jhh-team-offers{ margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+.jhh-offer-badge{ position:relative; display:inline-block; background: linear-gradient(180deg, #5a463a, #2e221b); color:#fff; padding:6px 10px; border-radius:999px; text-decoration:none; font-weight:700; overflow:hidden; }
+.jhh-offer-badge .jhh-offer-bg{ display:none; }
+.jhh-offer-badge.has-bg{ color:#fff; padding:0; }
+.jhh-offer-badge.has-bg .jhh-offer-bg{ display:block; position:absolute; inset:0; background-position:center; background-size:cover; filter: blur(6px) saturate(1.05); transform: scale(1.08); border-radius:inherit; }
+.jhh-offer-badge.has-bg::after{ content:''; position:absolute; inset:0; background: rgba(0,0,0,.35); border-radius:inherit; }
+.jhh-offer-badge.has-bg .jhh-offer-label{ position:relative; z-index:1; display:inline-block; padding:6px 12px; }
+
+/* List layout specifics */
+.jhh-team-block.layout-list .jhh-team-card{ display:flex; flex-direction:column; }
+.jhh-team-block.layout-list .jhh-team-inner{ align-items:flex-start; }
+
+/* Grid responsiveness */
+@media (max-width: 900px){
+  .jhh-team-avatar{ width:120px; height:120px; flex-basis:120px; margin-top:-30px; }
+}
+
+/* Force 1-column grid on small screens */
+@media (max-width: 780px){
+  .jhh-team-block .jhh-team{ grid-template-columns: 1fr !important; }
+}
+
+/* Dark color scheme: keep pastels; just tweak dark/none + contact color for contrast */
+@media (prefers-color-scheme: dark){
+  .jhh-team-card.bg-dark{ background:#1f1b1b; color:#f5f6f7; }
+  .jhh-team-card.bg-simple{ background:#1f1b1b; color:#f5f6f7; }
+  .jhh-team-card.bg-none{ background: transparent; color:#f6f6f6; border-color: rgba(255,255,255,0.12); }
+  .jhh-team-card.bg-blue .jhh-team-contact,
+  .jhh-team-card.bg-purple .jhh-team-contact,
+  .jhh-team-card.bg-sunset .jhh-team-contact,
+  .jhh-team-card.bg-rainbow .jhh-team-contact,
+  .jhh-team-card.bg-none .jhh-team-contact{ color:#93c5fd; }
+}
+
+/* Neve theme dark mode attribute support */
+html[data-neve-theme="dark"] .jhh-team-card.bg-dark{ background:#1f1b1b; color:#f5f6f7; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-simple{ background:#1f1b1b; color:#f5f6f7; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-none{ background: rgba(255,255,255,0.03); color:#f6f6f6; border-color: rgba(255,255,255,0.12); }
+/* Ensure readable text colors inside dark-mode cards (override theme link/text colors) */
+html[data-neve-theme="dark"] .jhh-team-card,
+html[data-neve-theme="dark"] .jhh-team-card .jhh-team-meta,
+html[data-neve-theme="dark"] .jhh-team-card .jhh-team-name,
+html[data-neve-theme="dark"] .jhh-team-card .jhh-team-role,
+html[data-neve-theme="dark"] .jhh-team-card .jhh-team-bio,
+html[data-neve-theme="dark"] .jhh-team-card p,
+html[data-neve-theme="dark"] .jhh-team-card a{ color:#f5f6f7 !important; }
+html[data-neve-theme="dark"] .jhh-team-card .jhh-team-role,
+html[data-neve-theme="dark"] .jhh-team-card .jhh-team-bio{ opacity:1; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-blue .jhh-team-contact,
+html[data-neve-theme="dark"] .jhh-team-card.bg-purple .jhh-team-contact,
+html[data-neve-theme="dark"] .jhh-team-card.bg-sunset .jhh-team-contact,
+html[data-neve-theme="dark"] .jhh-team-card.bg-rainbow .jhh-team-contact,
+html[data-neve-theme="dark"] .jhh-team-card.bg-none .jhh-team-contact{ color:#93c5fd; }
+
+/* Dark-mode variants for pastel backgrounds */
+html[data-neve-theme="dark"] .jhh-team-card.bg-blue{   background: linear-gradient(135deg, #3a3331, #2f2b28); color:#f5f6f7; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-purple{ background: linear-gradient(135deg, #3a2f2e, #2e292c); color:#f5f6f7; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-sunset{ background: linear-gradient(135deg, #3b322f, #2f2a27); color:#f5f6f7; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-rainbow{ background: linear-gradient(135deg, #38322e, #2c2725); color:#f5f6f7; }
+
+/* Offer badge hover shadow */
+.jhh-offer-badge{ transition: box-shadow .2s ease, transform .2s ease, background-color .2s ease, color .2s ease; }
+.jhh-offer-badge:hover{ box-shadow: 0 6px 18px rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.12); transform: translateY(-1px); }
+.jhh-offer-badge.has-bg:hover::after{ background: rgba(0,0,0,.28); }
+
+/* ==========================================
+   TEAM BLOCK – Extra backgrounds: Notebook & Aurora
+   ========================================== */
+/* Notebook paper background for team cards */
+.jhh-team-card.bg-notebook{
+  background-color: #f1f1f1;
+  background-image:
+    linear-gradient(90deg, transparent 72px, #ffb4b8 72px, #ffb4b8 74px, transparent 74px),
+    linear-gradient(#e1e1e1 0.1em, transparent 0.1em);
+  background-size: 100% 30px;
+  border: 1px solid rgba(0,0,0,0.08);
+  color:#1a1a1a;
+  position:relative; overflow:visible;
+}
+.jhh-team-card.bg-notebook .jhh-team-meta,
+.jhh-team-card.bg-notebook .jhh-team-name,
+.jhh-team-card.bg-notebook .jhh-team-role,
+.jhh-team-card.bg-notebook .jhh-team-bio,
+.jhh-team-card.bg-notebook p,
+.jhh-team-card.bg-notebook a{ color:#1a1a1a !important; }
+.jhh-team-card.bg-notebook .jhh-team-contact{ color:#0b3a55 !important; }
+/* Pinned photo look on team avatar */
+.jhh-team-card.bg-notebook .jhh-team-inner{ position:relative; }
+.jhh-team-card.bg-notebook .jhh-team-avatar{
+  border-radius: 10px;
+  padding: 6px; background:#fff;
+  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  transform: rotate(-2deg);
+  transform-origin: 20% 10%;
+  margin-top: -56px; /* protrude above card like other styles */
+}
+.jhh-team-card.bg-notebook .jhh-team-inner::before{
+  content:''; position:absolute; top:-8px; left:86px; width:14px; height:14px; border-radius:50%;
+  background: radial-gradient(circle at 35% 35%, #ff8a80 0 45%, #d14343 46% 65%, #7a1e1e 66% 100%);
+  box-shadow: 0 2px 0 rgba(0,0,0,.25);
+}
+@media (prefers-color-scheme: dark){
+  .jhh-team-card.bg-notebook{
+    background-color:#f3f3f3;
+    background-image:
+      linear-gradient(90deg, transparent 72px, #ffb4b8 72px, #ff9aa2 74px, transparent 74px),
+      linear-gradient(#e5e5e5 0.1em, transparent 0.1em);
+  }
+}
+
+/* Aurora pastel gradient for team cards (static) */
+.jhh-team-card.bg-aurora{
+  position:relative; overflow:visible; color:#111;
+  background: radial-gradient(circle, rgba(255,255,255,0.2), rgba(0,0,0,0.1));
+  /* Note: removed isolation:isolate to allow tooltips to appear above adjacent cards */
+}
+.jhh-team-card.bg-aurora::before,
+.jhh-team-card.bg-aurora::after{
+  content:""; position:absolute; inset:0;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, #ff9aa2, #ffb7b2, #ffdac1, #e2f0cb, #a2e4ff, #c9afff, #ffb7b2, #ff9aa2);
+  filter: blur(36px); opacity:.8;
+  pointer-events: none;
+}
+.jhh-team-card.bg-aurora::after{ opacity:.55; filter: blur(28px); }
+.jhh-team-card.bg-aurora > *{ position:relative; z-index:1; }
+.jhh-team-card.bg-aurora .jhh-team-contact{ color:#0b3a55; }
+@media (prefers-color-scheme: dark){
+  .jhh-team-card.bg-aurora{ background: radial-gradient(circle, rgba(255,255,255,0.20), rgba(255,255,255,0.05)); }
+  /* Soften the aurora glow on dark backgrounds */
+  .jhh-team-card.bg-aurora::before{ filter: blur(42px); opacity:.38; }
+  .jhh-team-card.bg-aurora::after{ filter: blur(36px); opacity:.28; }
+}
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora{ background: radial-gradient(circle, rgba(255,255,255,0.20), rgba(255,255,255,0.05)); }
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora::before{ filter: blur(42px); opacity:.38; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora::after{ filter: blur(36px); opacity:.28; }
+
+/* Dark mode: keep text dark on notebook (paper stays light) */
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook,
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook .jhh-team-meta,
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook .jhh-team-name,
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook .jhh-team-role,
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook .jhh-team-bio,
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook p,
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook a{
+  color:#1a1a1a !important;
+}
+html[data-neve-theme="dark"] .jhh-team-card.bg-notebook .jhh-team-contact{ color:#0b3a55 !important; }
+
+/* Dark mode ONLY: aurora uses lighter gradient wash, so white text for better contrast */
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora,
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora .jhh-team-meta,
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora .jhh-team-name,
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora .jhh-team-role,
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora .jhh-team-bio,
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora p,
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora a{
+  color:#fff !important;
+}
+html[data-neve-theme="dark"] .jhh-team-card.bg-aurora .jhh-team-contact{ color:#93c5fd !important; }
+@media (prefers-color-scheme: dark){
+  .jhh-team-card.bg-aurora,
+  .jhh-team-card.bg-aurora .jhh-team-meta,
+  .jhh-team-card.bg-aurora .jhh-team-name,
+  .jhh-team-card.bg-aurora .jhh-team-role,
+  .jhh-team-card.bg-aurora .jhh-team-bio,
+  .jhh-team-card.bg-aurora p,
+  .jhh-team-card.bg-aurora a{
+    color:#fff !important;
+  }
+  .jhh-team-card.bg-aurora .jhh-team-contact{ color:#93c5fd !important; }
+}
+/* Light mode: aurora keeps dark text for contrast on light gradient */
+@media (prefers-color-scheme: light){
+  .jhh-team-card.bg-aurora,
+  .jhh-team-card.bg-aurora .jhh-team-meta,
+  .jhh-team-card.bg-aurora .jhh-team-name,
+  .jhh-team-card.bg-aurora .jhh-team-role,
+  .jhh-team-card.bg-aurora .jhh-team-bio,
+  .jhh-team-card.bg-aurora p,
+  .jhh-team-card.bg-aurora a{
+    color:#1a1a1a !important;
+  }
+  .jhh-team-card.bg-aurora .jhh-team-contact{ color:#0b3a55 !important; }
+}
+/* Light mode for Neve theme default (when no dark mode set) */
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora,
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora .jhh-team-meta,
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora .jhh-team-name,
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora .jhh-team-role,
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora .jhh-team-bio,
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora p,
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora a{
+  color:#1a1a1a !important;
+}
+html:not([data-neve-theme="dark"]) .jhh-team-card.bg-aurora .jhh-team-contact{ color:#0b3a55 !important; }
+
+/* Dark mode: ensure offer badges keep white text on all team cards */
+@media (prefers-color-scheme: dark){
+  .jhh-team-card .jhh-offer-badge,
+  .jhh-team-card .jhh-offer-badge .jhh-offer-label{ color:#fff !important; }
+}
+html[data-neve-theme="dark"] .jhh-team-card .jhh-offer-badge,
+html[data-neve-theme="dark"] .jhh-team-card .jhh-offer-badge .jhh-offer-label{ color:#fff !important; }
+
+/* Ensure offer badges stay white on notebook backgrounds for readability */
+.jhh-team-card.bg-notebook .jhh-offer-badge,
+.jhh-staff-card.bg-notebook .jhh-offer-badge,
+.jhh-team-card.bg-notebook .jhh-offer-badge .jhh-offer-label,
+.jhh-staff-card.bg-notebook .jhh-offer-badge .jhh-offer-label{
+  color:#fff !important;
+}
+
+/* Single view: ensure dark text on notebook in dark mode */
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook .jhh-staff-meta,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook .jhh-staff-name,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook .jhh-staff-role,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook .jhh-staff-bio,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook p,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook a{
+  color:#1a1a1a !important;
+}
+html[data-neve-theme="dark"] .jhh-staff-card.bg-notebook .jhh-staff-contact{ color:#0b3a55 !important; }
+
+/* Single view aurora: white text ONLY in dark mode for contrast */
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora .jhh-staff-meta,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora .jhh-staff-name,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora .jhh-staff-role,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora .jhh-staff-bio,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora p,
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora a{
+  color:#fff !important;
+}
+html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora .jhh-staff-contact{ color:#93c5fd !important; }
+@media (prefers-color-scheme: dark){
+  .jhh-staff-card.bg-aurora,
+  .jhh-staff-card.bg-aurora .jhh-staff-meta,
+  .jhh-staff-card.bg-aurora .jhh-staff-name,
+  .jhh-staff-card.bg-aurora .jhh-staff-role,
+  .jhh-staff-card.bg-aurora .jhh-staff-bio,
+  .jhh-staff-card.bg-aurora p,
+  .jhh-staff-card.bg-aurora a{
+    color:#fff !important;
+  }
+  .jhh-staff-card.bg-aurora .jhh-staff-contact{ color:#93c5fd !important; }
+}
+/* Light mode: staff aurora keeps dark text */
+@media (prefers-color-scheme: light){
+  .jhh-staff-card.bg-aurora,
+  .jhh-staff-card.bg-aurora .jhh-staff-meta,
+  .jhh-staff-card.bg-aurora .jhh-staff-name,
+  .jhh-staff-card.bg-aurora .jhh-staff-role,
+  .jhh-staff-card.bg-aurora .jhh-staff-bio,
+  .jhh-staff-card.bg-aurora p,
+  .jhh-staff-card.bg-aurora a{
+    color:#1a1a1a !important;
+  }
+  .jhh-staff-card.bg-aurora .jhh-staff-contact{ color:#0b3a55 !important; }
+}
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora,
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-meta,
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-name,
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-role,
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-bio,
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora p,
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora a{
+  color:#1a1a1a !important;
+}
+html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{ color:#0b3a55 !important; }
+
+/* ==========================================
+   Tooltip for offer badges (weekdays display)
+   ========================================== */
+.jhh-offer-tooltip-container {
+  position: relative;
+  display: inline-block;
+  z-index: 1; /* base layer for container */
+}
+
+.jhh-offer-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  visibility: hidden;
+  background: #0b798a;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: opacity 0.3s ease, visibility 0.3s ease, top 0.3s ease, background 0.3s ease;
+  z-index: 9999; /* high z-index to appear above avatars and other elements */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  pointer-events: none;
+  margin-top: 4px;
+}
+
+.jhh-offer-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #0b798a transparent;
+  transform: translateX(-50%);
+}
+
+.jhh-offer-tooltip-container:hover .jhh-offer-tooltip {
+  top: calc(100% + 4px);
+  opacity: 1;
+  visibility: visible;
+  background: #0e94a0;
+}
