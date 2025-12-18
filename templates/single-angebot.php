@@ -227,13 +227,24 @@ while ( have_posts() ) : the_post();
                     $related_link = add_query_arg( 'back', urlencode( $back_param ), $related_link );
                 }
                 
-                // Hole Mitarbeiter (Jugendarbeit Terms)
+                // Hole Mitarbeiter (Jugendarbeit Terms) mit Avataren
                 $rel_staff = [];
                 if ( taxonomy_exists( JHH_TAX_JUGEND ) ) {
                     $rel_terms = get_the_terms( $rel_post_id, JHH_TAX_JUGEND );
                     if ( $rel_terms && ! is_wp_error( $rel_terms ) ) {
                         foreach ( $rel_terms as $rt ) {
-                            $rel_staff[] = esc_html( $rt->name );
+                            $avatar_id = (int) get_term_meta( $rt->term_id, 'avatar_id', true );
+                            $avatar_html = '';
+                            if ( $avatar_id ) {
+                                $avatar_url = wp_get_attachment_image_url( $avatar_id, 'thumbnail' );
+                                if ( $avatar_url ) {
+                                    $avatar_html = '<img class="jhh-related-avatar" src="' . esc_url( $avatar_url ) . '" alt="' . esc_attr( $rt->name ) . '">';
+                                }
+                            }
+                            $rel_staff[] = [
+                                'name' => esc_html( $rt->name ),
+                                'avatar' => $avatar_html
+                            ];
                         }
                     }
                 }
@@ -265,7 +276,17 @@ while ( have_posts() ) : the_post();
                 if ( $rel_staff || $rel_schedule ) {
                     $hover_html = '<div class="jhh-related-hover">';
                     if ( $rel_staff ) {
-                        $hover_html .= '<div class="jhh-related-staff"><span class="jhh-related-icon">👤</span>' . implode( ', ', $rel_staff ) . '</div>';
+                        $hover_html .= '<div class="jhh-related-staff">';
+                        $hover_html .= '<div class="jhh-related-avatars">';
+                        foreach ( $rel_staff as $staff_item ) {
+                            if ( $staff_item['avatar'] ) {
+                                $hover_html .= $staff_item['avatar'];
+                            }
+                        }
+                        $hover_html .= '</div>';
+                        $staff_names = array_map( function($s) { return $s['name']; }, $rel_staff );
+                        $hover_html .= '<span class="jhh-related-names">' . implode( ', ', $staff_names ) . '</span>';
+                        $hover_html .= '</div>';
                     }
                     if ( $rel_schedule ) {
                         $hover_html .= '<div class="jhh-related-schedule"><span class="jhh-related-icon">🕐</span>' . implode( ' | ', $rel_schedule ) . '</div>';

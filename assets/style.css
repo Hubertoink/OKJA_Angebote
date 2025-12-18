@@ -1044,10 +1044,10 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
   font-size: 0.8rem;
   color: #e0e0e0;
   line-height: 1.4;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
 }
 
 .jhh-related-staff:last-child,
@@ -1058,6 +1058,31 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
 .jhh-related-icon {
   flex-shrink: 0;
   font-size: 0.9rem;
+}
+
+/* Staff avatars */
+.jhh-related-avatars {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.jhh-related-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1e1b1b;
+  margin-right: -8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.jhh-related-avatar:last-child {
+  margin-right: 0;
+}
+
+.jhh-related-names {
+  color: #b9aaff;
+  font-weight: 600;
 }
 
 .jhh-related-staff {
@@ -1075,14 +1100,7 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
   .jhh-related-grid .jhh-related-item:nth-child(5) {
     display: none;
   }
-  /* On touch devices, show hover info always (reduced) */
-  .jhh-related-hover {
-    position: relative;
-    transform: translateY(0);
-    opacity: 1;
-    padding: 6px 10px 8px;
-    background: rgba(30,27,27,0.9);
-  }
+}
 }
 
 /* ==========================================
