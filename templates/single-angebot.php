@@ -202,7 +202,7 @@ while ( have_posts() ) : the_post();
         <?php endif; ?>
 
         <?php
-        // Weitere Angebote – zeige alle anderen Angebote (max 6), zufällig sortiert
+        // Weitere Angebote – zeige alle anderen Angebote (max 5), zufällig sortiert
         $rel_args = [
             'post_type' => 'angebot',
             'post_status' => 'publish',
@@ -218,13 +218,69 @@ while ( have_posts() ) : the_post();
         if ( $rel->have_posts() ) {
             echo '<section class="jhh-related"><h3>Weitere Angebote</h3><div class="jhh-related-grid">';
             while ( $rel->have_posts() ) { $rel->the_post();
-                $img = get_the_post_thumbnail( get_the_ID(), 'medium', [ 'class' => 'jhh-related-thumb' ] );
-                // Pass the back parameter to related offer links so the return button works correctly
+                $rel_post_id = get_the_ID();
+                $img = get_the_post_thumbnail( $rel_post_id, 'medium', [ 'class' => 'jhh-related-thumb' ] );
+                
+                // Pass the back parameter to related offer links
                 $related_link = get_permalink();
                 if ( $back_param ) {
                     $related_link = add_query_arg( 'back', urlencode( $back_param ), $related_link );
                 }
-                printf('<a class="jhh-related-item" href="%s">%s<span class="jhh-related-title">%s</span></a>', esc_url( $related_link ), $img ?: '', esc_html( get_the_title() ));
+                
+                // Hole Mitarbeiter (Jugendarbeit Terms)
+                $rel_staff = [];
+                if ( taxonomy_exists( JHH_TAX_JUGEND ) ) {
+                    $rel_terms = get_the_terms( $rel_post_id, JHH_TAX_JUGEND );
+                    if ( $rel_terms && ! is_wp_error( $rel_terms ) ) {
+                        foreach ( $rel_terms as $rt ) {
+                            $rel_staff[] = esc_html( $rt->name );
+                        }
+                    }
+                }
+                
+                // Hole Uhrzeiten
+                $rel_days = get_post_meta( $rel_post_id, 'jhh_days', true );
+                $rel_times = get_post_meta( $rel_post_id, 'jhh_day_times', true );
+                $rel_days = is_array( $rel_days ) ? $rel_days : [];
+                $rel_times = is_array( $rel_times ) ? $rel_times : [];
+                $rel_schedule = [];
+                if ( $rel_days ) {
+                    $day_labels = [ 'montag' => 'Mo', 'dienstag' => 'Di', 'mittwoch' => 'Mi', 'donnerstag' => 'Do', 'freitag' => 'Fr', 'samstag' => 'Sa', 'sonntag' => 'So' ];
+                    $weekday_order = [ 'montag'=>1,'dienstag'=>2,'mittwoch'=>3,'donnerstag'=>4,'freitag'=>5,'samstag'=>6,'sonntag'=>7 ];
+                    usort( $rel_days, function($a,$b) use($weekday_order){ return ($weekday_order[$a] ?? 99) <=> ($weekday_order[$b] ?? 99); });
+                    foreach ( $rel_days as $day_key ) {
+                        $day_label = $day_labels[$day_key] ?? ucfirst( substr( $day_key, 0, 2 ) );
+                        $start = isset( $rel_times[$day_key]['start'] ) ? trim( (string) $rel_times[$day_key]['start'] ) : '';
+                        $end   = isset( $rel_times[$day_key]['end'] )   ? trim( (string) $rel_times[$day_key]['end'] )   : '';
+                        if ( $start && $end ) {
+                            $rel_schedule[] = sprintf( '%s %s–%s', $day_label, $start, $end );
+                        } else {
+                            $rel_schedule[] = $day_label;
+                        }
+                    }
+                }
+                
+                // Baue Hover-Overlay nur wenn Daten vorhanden
+                $hover_html = '';
+                if ( $rel_staff || $rel_schedule ) {
+                    $hover_html = '<div class="jhh-related-hover">';
+                    if ( $rel_staff ) {
+                        $hover_html .= '<div class="jhh-related-staff"><span class="jhh-related-icon">👤</span>' . implode( ', ', $rel_staff ) . '</div>';
+                    }
+                    if ( $rel_schedule ) {
+                        $hover_html .= '<div class="jhh-related-schedule"><span class="jhh-related-icon">🕐</span>' . implode( ' | ', $rel_schedule ) . '</div>';
+                    }
+                    $hover_html .= '</div>';
+                }
+                
+                printf(
+                    '<a class="jhh-related-item%s" href="%s">%s<div class="jhh-related-content"><span class="jhh-related-title">%s</span>%s</div></a>',
+                    $hover_html ? ' has-hover' : '',
+                    esc_url( $related_link ),
+                    $img ?: '',
+                    esc_html( get_the_title() ),
+                    $hover_html
+                );
             }
             echo '</div></section>';
             wp_reset_postdata();
