@@ -439,6 +439,214 @@
    SINGLE: Angebot – Hero, Staff, Related
    ========================================== */
 
+/* Hide Neve theme overlay on single-angebot pages */
+.single-angebot .nv-overlay,
+.single-angebot .nv-post-cover .nv-overlay {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* ==========================================
+   HERO TITLE ANIMATIONS
+   ========================================== */
+
+/* Animation: Fade In Up */
+.jhh-hero-title.anim-fade-in-up {
+  animation: jhhFadeInUp 1s ease-out forwards;
+}
+@keyframes jhhFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation: Slide In Left */
+.jhh-hero-title.anim-slide-in-left {
+  animation: jhhSlideInLeft 0.8s ease-out forwards;
+}
+@keyframes jhhSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation: Scale Pop */
+.jhh-hero-title.anim-scale-pop {
+  animation: jhhScalePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes jhhScalePop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animation: Typewriter */
+.jhh-hero-title.anim-typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid #fff;
+  width: 0;
+  animation: jhhTypewriter 2s steps(30, end) forwards, jhhBlinkCaret 0.75s step-end infinite;
+}
+@keyframes jhhTypewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes jhhBlinkCaret {
+  from, to { border-color: transparent; }
+  50% { border-color: #fff; }
+}
+
+/* Animation: Glitch */
+.jhh-hero-title.anim-glitch {
+  position: relative;
+  animation: jhhGlitch 1s ease forwards;
+}
+.jhh-hero-title.anim-glitch::before,
+.jhh-hero-title.anim-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.jhh-hero-title.anim-glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00ff;
+  clip-path: inset(0 0 50% 0);
+  animation: jhhGlitchTop 0.8s ease infinite;
+  animation-delay: 0.2s;
+}
+.jhh-hero-title.anim-glitch::after {
+  left: -2px;
+  text-shadow: 2px 0 #00ffff;
+  clip-path: inset(50% 0 0 0);
+  animation: jhhGlitchBottom 0.8s ease infinite;
+  animation-delay: 0.4s;
+}
+@keyframes jhhGlitch {
+  0% { opacity: 0; transform: translateX(-20px); }
+  10% { opacity: 1; transform: translateX(10px); }
+  20% { transform: translateX(-5px); }
+  30% { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+@keyframes jhhGlitchTop {
+  0%, 100% { clip-path: inset(0 0 50% 0); transform: translateX(0); }
+  50% { clip-path: inset(0 0 48% 0); transform: translateX(-3px); }
+}
+@keyframes jhhGlitchBottom {
+  0%, 100% { clip-path: inset(50% 0 0 0); transform: translateX(0); }
+  50% { clip-path: inset(52% 0 0 0); transform: translateX(3px); }
+}
+
+/* Animation: Wave */
+.jhh-hero-title.anim-wave {
+  display: inline-block;
+  animation: jhhWave 2s ease-in-out infinite;
+}
+@keyframes jhhWave {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-5px) rotate(2deg); }
+}
+
+/* Animation: Glow Pulse */
+.jhh-hero-title.anim-glow-pulse {
+  animation: jhhGlowPulse 2s ease-in-out infinite, jhhFadeIn 0.6s ease forwards;
+}
+@keyframes jhhFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes jhhGlowPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.5), 0 0 60px rgba(255,255,255,0.3);
+  }
+}
+
+/* Hover Effects */
+.jhh-hero-title.hover-glow:hover {
+  text-shadow: 0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(255,255,255,0.6), 0 0 60px rgba(255,255,255,0.4);
+  transition: text-shadow 0.3s ease;
+}
+
+.jhh-hero-title.hover-scale:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+.jhh-hero-title.hover-color-shift:hover {
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #00c6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.3s ease;
+}
+
+.jhh-hero-title.hover-underline {
+  position: relative;
+  display: inline-block;
+}
+.jhh-hero-title.hover-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #00c6ff);
+  transition: all 0.4s ease;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+.jhh-hero-title.hover-underline:hover::after {
+  width: 100%;
+}
+
+.jhh-hero-title.hover-shake:hover {
+  animation: jhhShake 0.5s ease;
+}
+@keyframes jhhShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Reduced motion: disable animations */
+@media (prefers-reduced-motion: reduce) {
+  .jhh-hero-title[class*="anim-"],
+  .jhh-hero-title[class*="hover-"] {
+    animation: none !important;
+    transition: none !important;
+  }
+  .jhh-hero-title.anim-typewriter {
+    width: 100% !important;
+    border-right: none !important;
+  }
+}
+
 /* Content area: ensure proper list styles */
 .jhh-content ul,
 .jhh-content ol {

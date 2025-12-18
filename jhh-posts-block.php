@@ -157,6 +157,25 @@ add_action( 'admin_init', function() {
         'sanitize_callback' => 'sanitize_hex_color'
     ] );
     
+    // Hero animation settings
+    register_setting( 'okja_settings_group', 'okja_hero_animation', [
+        'type' => 'string',
+        'default' => 'none',
+        'sanitize_callback' => function( $val ) {
+            $allowed = [ 'none', 'fade-in-up', 'slide-in-left', 'scale-pop', 'typewriter', 'glitch', 'wave', 'glow-pulse' ];
+            return in_array( $val, $allowed, true ) ? $val : 'none';
+        }
+    ] );
+    
+    register_setting( 'okja_settings_group', 'okja_hero_hover', [
+        'type' => 'string',
+        'default' => 'none',
+        'sanitize_callback' => function( $val ) {
+            $allowed = [ 'none', 'glow', 'scale', 'color-shift', 'underline', 'shake' ];
+            return in_array( $val, $allowed, true ) ? $val : 'none';
+        }
+    ] );
+    
     // Section: Style
     add_settings_section(
         'okja_staff_section',
@@ -199,6 +218,32 @@ add_action( 'admin_init', function() {
         'okja_render_preview_field',
         'okja-angebote-settings',
         'okja_colors_section'
+    );
+    
+    // Section: Hero Animations
+    add_settings_section(
+        'okja_hero_section',
+        __( 'Hero-Titel Animationen', 'jhh-posts-block' ),
+        function() {
+            echo '<p>' . esc_html__( 'Wähle Animationen für den Titel im Hero-Bereich der Einzelansicht.', 'jhh-posts-block' ) . '</p>';
+        },
+        'okja-angebote-settings'
+    );
+    
+    add_settings_field(
+        'okja_hero_animation',
+        __( 'Eingangs-Animation', 'jhh-posts-block' ),
+        'okja_render_hero_animation_field',
+        'okja-angebote-settings',
+        'okja_hero_section'
+    );
+    
+    add_settings_field(
+        'okja_hero_hover',
+        __( 'Hover-Effekt', 'jhh-posts-block' ),
+        'okja_render_hero_hover_field',
+        'okja-angebote-settings',
+        'okja_hero_section'
     );
 } );
 
@@ -299,6 +344,52 @@ function okja_render_preview_field() {
         </div>
     </div>
     <p class="description" style="margin-top: 12px;"><?php esc_html_e( 'Live-Vorschau der Kartenfarben. Änderungen werden sofort angezeigt.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_hero_animation_field() {
+    $animation = get_option( 'okja_hero_animation', 'none' );
+    $options = [
+        'none'          => __( 'Keine Animation', 'jhh-posts-block' ),
+        'fade-in-up'    => __( '⬆️ Fade In Up – Sanftes Einblenden von unten', 'jhh-posts-block' ),
+        'slide-in-left' => __( '⬅️ Slide In Left – Hereinrutschen von links', 'jhh-posts-block' ),
+        'scale-pop'     => __( '💥 Scale Pop – Aufploppen mit Bounce', 'jhh-posts-block' ),
+        'typewriter'    => __( '⌨️ Typewriter – Schreibmaschinen-Effekt', 'jhh-posts-block' ),
+        'glitch'        => __( '⚡ Glitch – Digitaler Störungs-Effekt', 'jhh-posts-block' ),
+        'wave'          => __( '🌊 Wave – Sanftes Wippen (dauerhaft)', 'jhh-posts-block' ),
+        'glow-pulse'    => __( '✨ Glow Pulse – Pulsierendes Leuchten', 'jhh-posts-block' ),
+    ];
+    ?>
+    <select name="okja_hero_animation">
+        <?php foreach ( $options as $value => $label ) : ?>
+            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $animation, $value ); ?>>
+                <?php echo esc_html( $label ); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <p class="description"><?php esc_html_e( 'Wird beim Laden der Seite einmal abgespielt (außer Wave/Glow Pulse = dauerhaft).', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_hero_hover_field() {
+    $hover = get_option( 'okja_hero_hover', 'none' );
+    $options = [
+        'none'        => __( 'Kein Hover-Effekt', 'jhh-posts-block' ),
+        'glow'        => __( '✨ Glow – Leuchtender Schein', 'jhh-posts-block' ),
+        'scale'       => __( '🔍 Scale – Leicht vergrößern', 'jhh-posts-block' ),
+        'color-shift' => __( '🌈 Color Shift – Regenbogen-Farbverlauf', 'jhh-posts-block' ),
+        'underline'   => __( '➖ Underline – Animierte Unterstreichung', 'jhh-posts-block' ),
+        'shake'       => __( '📳 Shake – Wackeln', 'jhh-posts-block' ),
+    ];
+    ?>
+    <select name="okja_hero_hover">
+        <?php foreach ( $options as $value => $label ) : ?>
+            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $hover, $value ); ?>>
+                <?php echo esc_html( $label ); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <p class="description"><?php esc_html_e( 'Wird beim Hover über den Titel aktiviert.', 'jhh-posts-block' ); ?></p>
     <?php
 }
 

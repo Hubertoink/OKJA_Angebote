@@ -16,13 +16,25 @@ while ( have_posts() ) : the_post();
     $hero_url = get_the_post_thumbnail_url( $post_id, 'full' );
     $back_param = isset( $_GET['back'] ) ? esc_url_raw( wp_unslash( $_GET['back'] ) ) : '';
     $back_href = $back_param ? $back_param : get_post_type_archive_link( 'angebot' );
+    
+    // Get hero animation settings
+    $hero_animation = get_option( 'okja_hero_animation', 'none' );
+    $hero_hover = get_option( 'okja_hero_hover', 'none' );
+    $title_classes = 'jhh-hero-title';
+    if ( $hero_animation !== 'none' ) {
+        $title_classes .= ' anim-' . esc_attr( $hero_animation );
+    }
+    if ( $hero_hover !== 'none' ) {
+        $title_classes .= ' hover-' . esc_attr( $hero_hover );
+    }
+    $title_text = get_the_title();
 ?>
 
 <main class="jhh-single-angebot" id="main">
     <?php if ( $hero_url ) : ?>
     <section class="jhh-hero" style="background-image:url('<?php echo esc_url( $hero_url ); ?>')">
         <div class="jhh-hero-overlay">
-            <h1 class="jhh-hero-title"><?php the_title(); ?></h1>
+            <h1 class="<?php echo esc_attr( $title_classes ); ?>" data-text="<?php echo esc_attr( $title_text ); ?>"><?php echo esc_html( $title_text ); ?></h1>
         </div>
     </section>
     <?php endif; ?>
