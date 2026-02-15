@@ -1088,12 +1088,42 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
 .jhh-staff-bio p{ margin: 0 0 8px; }
 .jhh-staff-bio p:last-child{ margin-bottom: 0; }
 
-/* Responsive: auf Mobil wieder vertikal */
+/* Responsive: auf Mobil – Profilbild-Badge über der Karte */
 @media (max-width: 480px){
-  .jhh-staff-card{ flex-direction: column; text-align: center; }
-  .jhh-staff-inner{ flex: 0 0 auto; min-height: 160px; max-height: 200px; }
-  .jhh-staff-avatar{ object-position: center top; }
-  .jhh-staff-meta{ padding: 16px 16px 8px; }
+  .jhh-staff-card{
+    flex-direction: column;
+    text-align: center;
+    padding-top: 62px;
+    margin-top: 56px;
+    overflow: visible;
+    position: relative;
+  }
+  .jhh-staff-inner{
+    position: absolute;
+    top: -56px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex: 0 0 auto;
+    width: 112px;
+    height: 112px;
+    min-height: 0;
+    max-height: none;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #1a1a1a;
+    box-shadow:
+      0 0 0 4px rgba(255,255,255,.12),
+      0 8px 28px rgba(0,0,0,.35);
+  }
+  .jhh-staff-avatar{
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 50%;
+  }
+  .jhh-staff-meta{ padding: 4px 16px 8px; }
   .jhh-staff-bio{ padding: 0 16px 16px; text-align: left; }
 }
 
