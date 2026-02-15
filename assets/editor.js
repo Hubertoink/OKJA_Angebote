@@ -2,7 +2,7 @@
   const { registerBlockType } = wp.blocks;
   const {
     PanelBody, ToggleControl, SelectControl, RangeControl,
-    CheckboxControl, Button, TextControl
+    CheckboxControl, Button, TextControl, ColorPalette
   } = wp.components;
   const { InspectorControls, PanelColorSettings } = wp.blockEditor || wp.editor;
   const el = wp.element.createElement;
@@ -50,6 +50,7 @@
   carouselIndicators: { type: 'boolean', default: true },
   carouselArrows: { type: 'boolean', default: true },
   backUrl: { type: 'string', default: '' },
+      singleShowEvents: { type: 'boolean', default: true },
       showImage: { type: 'boolean', default: true },
       imageSize: { type: 'string', default: 'medium' },
       imageHoverEffect: { type: 'string', default: 'none' }, // none, tilt, zoom, glow
@@ -58,6 +59,7 @@
       showAuthor: { type: 'boolean', default: false },
       showExcerpt: { type: 'boolean', default: true },
       excerptLength: { type: 'number', default: 20 },
+      showEventImageBadge: { type: 'boolean', default: false },
       showReadMore: { type: 'boolean', default: true },
       showGradientLine: { type: 'boolean', default: false },
       gradientMarginTop: { type: 'number', default: 16 },
@@ -272,10 +274,22 @@
               onChange: (val) => setAttributes({ excerptLength: val }),
               min: 5, max: 80,
             }),
+            a.postType === 'angebot' && el(ToggleControl, {
+              label: "Event-Badge auf Bild (Vorschau)",
+              checked: !!a.showEventImageBadge,
+              onChange: (val) => setAttributes({ showEventImageBadge: val }),
+              help: "Zeigt auf dem Angebotsbild ein Badge, wenn mindestens ein aktuelles A-Event verknüpft ist."
+            }),
             el(ToggleControl, {
               label: "Weiterlesen-Link",
               checked: !!a.showReadMore,
               onChange: (val) => setAttributes({ showReadMore: val }),
+            }),
+            a.postType === 'angebot' && el(ToggleControl, {
+              label: "Single-Ansicht: Events anzeigen",
+              checked: !!a.singleShowEvents,
+              onChange: (val) => setAttributes({ singleShowEvents: val }),
+              help: "Steuert die Event-Sektion auf der Angebots-Einzelseite für Links aus diesem Block."
             }),
             el(ToggleControl, {
               label: "Gradientenlinie",
@@ -413,8 +427,12 @@
       showEmail: { type: 'boolean', default: true },
       showBio: { type: 'boolean', default: true },
       showOffers: { type: 'boolean', default: true },
+      showOfferHover: { type: 'boolean', default: true },
       maxOffers: { type: 'number', default: 6 },
       backUrl: { type: 'string', default: '' },
+      cardCustomColor1: { type: 'string', default: '#333333' },
+      cardCustomColor2: { type: 'string', default: '#000000' },
+      cardCustomDirection: { type: 'string', default: '135deg' },
     },
     edit: (props) => {
       const { attributes: a, setAttributes } = props;
@@ -502,6 +520,7 @@
             el(ToggleControl, { label: 'E-Mail', checked: !!a.showEmail, onChange: (v) => setAttributes({ showEmail: v }) }),
             el(ToggleControl, { label: 'Beschreibung', checked: !!a.showBio, onChange: (v) => setAttributes({ showBio: v }) }),
             el(ToggleControl, { label: 'Angebote (Badges)', checked: !!a.showOffers, onChange: (v) => setAttributes({ showOffers: v }) }),
+            !!a.showOffers && el(ToggleControl, { label: 'Hover-Tooltip (Tage) zeigen', checked: a.showOfferHover !== false, onChange: (v) => setAttributes({ showOfferHover: v }) }),
             !!a.showOffers && el(RangeControl, { label: 'Max. Angebote', value: a.maxOffers || 6, onChange: (v) => setAttributes({ maxOffers: v }), min: 0, max: 20 })
           ),
           el(
@@ -524,15 +543,36 @@
               options: [
                 { label: 'Ohne Hintergrund', value: 'none' },
                 { label: 'Dunkel', value: 'dark' },
-                { label: 'Schlicht (dunkel, Linie)', value: 'simple' },
-                { label: 'Pastell 1', value: 'blue' },
-                { label: 'Pastell 2', value: 'purple' },
-                { label: 'Pastell 3', value: 'sunset' },
-                { label: 'Pastell 4', value: 'rainbow' },
-                { label: 'Notizbuch (Papier)', value: 'notebook' },
+                { label: 'Schlicht (dunkel + Regenbogenlinie)', value: 'simple' },
+                { label: '── Modern ──', value: '', disabled: true },
+                { label: 'Grainy Gradient (Bild 1)', value: 'grainy-1' },
+                { label: 'Grainy Gradient (Bild 2)', value: 'grainy-2' },
+                { label: 'Grainy Gradient (Bild 3)', value: 'grainy-3' },
+                { label: 'Muted (Anthrazit)', value: 'muted' },
+                { label: 'Charcoal (Blau-Grau)', value: 'charcoal' },
+                { label: '── Individuell ──', value: '', disabled: true },
+                { label: 'Eigener Gradient', value: 'custom' },
               ],
               onChange: (val) => setAttributes({ cardBgStyle: val })
             }),
+            a.cardBgStyle === 'custom' && el('div', { className: 'jhh-custom-bg-controls', style: { border: '1px solid #ccc', padding: '10px', borderRadius: '4px', marginTop: '10px' } },
+                el('strong', { style: { display: 'block', marginBottom: '8px' } }, 'Custom Hintergrund'),
+                el('span', { style: { display: 'block', marginBottom: '4px', fontSize: '11px' } }, 'Farbe 1 (Start)'),
+                el(ColorPalette, {
+                    value: a.cardCustomColor1,
+                    onChange: (val) => setAttributes({ cardCustomColor1: val })
+                }),
+                el('span', { style: { display: 'block', marginBottom: '4px', marginTop: '8px', fontSize: '11px' } }, 'Farbe 2 (Ende)'),
+                el(ColorPalette, { 
+                    value: a.cardCustomColor2,
+                    onChange: (val) => setAttributes({ cardCustomColor2: val })
+                }),
+                el(TextControl, {
+                    label: 'Richtung (z.B. 135deg, to right)',
+                    value: a.cardCustomDirection,
+                    onChange: (val) => setAttributes({ cardCustomDirection: val })
+                })
+            ),
             // Back URL for single page
             el(TextControl, {
               label: 'Zurück-Link (Alle Angebote) – URL',
@@ -543,6 +583,125 @@
           )
         ),
         el(ServerSideRender, { block: 'jhh/team', attributes: a })
+      ];
+    },
+    save: () => null
+  });
+
+  // ======================
+  // New Block: JHH Events (Angebotsevents)
+  // ======================
+  const angeboteList = (window.JHH_POSTS_BLOCK_DATA && window.JHH_POSTS_BLOCK_DATA.angebote) || [];
+
+  registerBlockType("jhh/events", {
+    title: "OKJA Events",
+    icon: "calendar-alt",
+    category: "widgets",
+    attributes: {
+      postsToShow: { type: 'number', default: 6 },
+      columns: { type: 'number', default: 3 },
+      gap: { type: 'number', default: 16 },
+      filterByAngebot: { type: 'number', default: 0 },
+      onlyFuture: { type: 'boolean', default: true },
+      orderBy: { type: 'string', default: 'event_date' },
+      order: { type: 'string', default: 'ASC' },
+      showImage: { type: 'boolean', default: true },
+      showPrice: { type: 'boolean', default: true },
+      showDate: { type: 'boolean', default: true },
+      showTime: { type: 'boolean', default: true },
+      showParticipants: { type: 'boolean', default: true },
+      showAngebot: { type: 'boolean', default: true },
+      showExcerpt: { type: 'boolean', default: false },
+    },
+    edit: (props) => {
+      const { attributes: a, setAttributes } = props;
+
+      // Build angebot options for dropdown
+      const angebotOptions = [
+        { label: '— Alle Angebote —', value: 0 }
+      ].concat(
+        angeboteList.map((item) => ({ label: item.title, value: item.id }))
+      );
+
+      return [
+        el(
+          InspectorControls,
+          { key: 'inspector-events' },
+
+          // Abfrage-Panel
+          el(
+            PanelBody,
+            { title: 'Abfrage', initialOpen: true },
+            el(RangeControl, {
+              label: 'Anzahl Events',
+              value: a.postsToShow,
+              onChange: (val) => setAttributes({ postsToShow: val }),
+              min: 1, max: 24,
+            }),
+            el(SelectControl, {
+              label: 'Nach Angebot filtern',
+              value: a.filterByAngebot,
+              options: angebotOptions,
+              onChange: (val) => setAttributes({ filterByAngebot: parseInt(val, 10) || 0 }),
+            }),
+            el(ToggleControl, {
+              label: 'Nur zukünftige Events',
+              checked: !!a.onlyFuture,
+              onChange: (val) => setAttributes({ onlyFuture: val }),
+            }),
+            el(SelectControl, {
+              label: 'Sortieren nach',
+              value: a.orderBy,
+              options: [
+                { label: 'Event-Datum', value: 'event_date' },
+                { label: 'Veröffentlichungsdatum', value: 'date' },
+                { label: 'Titel', value: 'title' },
+              ],
+              onChange: (val) => setAttributes({ orderBy: val }),
+            }),
+            el(SelectControl, {
+              label: 'Reihenfolge',
+              value: a.order,
+              options: [
+                { label: 'Aufsteigend (nächstes zuerst)', value: 'ASC' },
+                { label: 'Absteigend', value: 'DESC' },
+              ],
+              onChange: (val) => setAttributes({ order: val }),
+            })
+          ),
+
+          // Felder-Panel
+          el(
+            PanelBody,
+            { title: 'Felder', initialOpen: true },
+            el(ToggleControl, { label: 'Beitragsbild', checked: !!a.showImage, onChange: (v) => setAttributes({ showImage: v }) }),
+            el(ToggleControl, { label: 'Datum', checked: !!a.showDate, onChange: (v) => setAttributes({ showDate: v }) }),
+            el(ToggleControl, { label: 'Uhrzeit', checked: !!a.showTime, onChange: (v) => setAttributes({ showTime: v }) }),
+            el(ToggleControl, { label: 'Preis', checked: !!a.showPrice, onChange: (v) => setAttributes({ showPrice: v }) }),
+            el(ToggleControl, { label: 'Teilnehmer', checked: !!a.showParticipants, onChange: (v) => setAttributes({ showParticipants: v }) }),
+            el(ToggleControl, { label: 'Verknüpftes Angebot', checked: !!a.showAngebot, onChange: (v) => setAttributes({ showAngebot: v }) }),
+            el(ToggleControl, { label: 'Auszug', checked: !!a.showExcerpt, onChange: (v) => setAttributes({ showExcerpt: v }) })
+          ),
+
+          // Layout-Panel
+          el(
+            PanelBody,
+            { title: 'Layout', initialOpen: false },
+            el(RangeControl, {
+              label: 'Spalten',
+              value: a.columns,
+              onChange: (val) => setAttributes({ columns: val }),
+              min: 1, max: 4,
+            }),
+            el(RangeControl, {
+              label: 'Abstand (px)',
+              value: a.gap,
+              onChange: (val) => setAttributes({ gap: val }),
+              min: 0, max: 64,
+            })
+          )
+        ),
+        el(ServerSideRender, { block: 'jhh/events', attributes: a })
       ];
     },
     save: () => null

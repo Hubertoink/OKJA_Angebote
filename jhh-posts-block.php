@@ -3,7 +3,7 @@
  * Plugin Name: OKJA_Angebote
  * Description: Flexibler Beitrags-/CPT-Block mit Live-Vorschau, Post-Typ-Auswahl, Taxonomie-Filtern/Badges, frei anordenbaren Elementen und Style-Optionen.
  * Author: Hubertoink
- * Version: 1.0
+ * Version: 1.0.2
  * Requires at least: 6.0
  * Requires PHP: 7.4
  */
@@ -12,6 +12,24 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 define( 'JHH_PB_URL', plugin_dir_url( __FILE__ ) );
 define( 'JHH_PB_DIR', plugin_dir_path( __FILE__ ) );
+define( 'JHH_PB_VERSION', '1.0.2' );
+
+// Flush rewrite rules on activation so new CPT slugs work immediately
+register_activation_hook( __FILE__, function() {
+    // Force CPTs to be registered before flushing
+    do_action( 'init' );
+    flush_rewrite_rules();
+    update_option( 'jhh_pb_version', JHH_PB_VERSION );
+} );
+
+// Flush rewrite rules once after plugin updates (e.g. new CPT slugs)
+add_action( 'init', function() {
+    $stored_version = (string) get_option( 'jhh_pb_version', '' );
+    if ( $stored_version !== JHH_PB_VERSION ) {
+        flush_rewrite_rules();
+        update_option( 'jhh_pb_version', JHH_PB_VERSION );
+    }
+}, 99 );
 // ------------------------------------------------------------
 // 1. Globale Konstanten
 // ------------------------------------------------------------
@@ -77,7 +95,80 @@ add_action( 'init', function() {
         'hierarchical' => true,
     ] );
 
+    // --- Custom Post Type "Angebotsevent" (A-Event) ---
+    register_post_type( 'angebotsevent', [
+        'labels' => [
+            'name'               => __( 'A-Events', 'jhh-posts-block' ),
+            'singular_name'      => __( 'A-Event', 'jhh-posts-block' ),
+            'add_new'            => __( 'Neues A-Event', 'jhh-posts-block' ),
+            'add_new_item'       => __( 'Neues A-Event hinzufügen', 'jhh-posts-block' ),
+            'edit_item'          => __( 'A-Event bearbeiten', 'jhh-posts-block' ),
+            'view_item'          => __( 'A-Event ansehen', 'jhh-posts-block' ),
+            'all_items'          => __( 'A-Events', 'jhh-posts-block' ),
+            'search_items'       => __( 'A-Events durchsuchen', 'jhh-posts-block' ),
+            'not_found'          => __( 'Keine A-Events gefunden.', 'jhh-posts-block' ),
+            'not_found_in_trash' => __( 'Keine A-Events im Papierkorb.', 'jhh-posts-block' ),
+        ],
+        'public'       => true,
+        'show_in_rest' => true,
+        'has_archive'  => true,
+        'show_in_menu' => 'edit.php?post_type=angebot',
+        'menu_icon'    => 'dashicons-calendar-alt',
+        'supports'     => [ 'title', 'editor', 'thumbnail', 'excerpt' ],
+        'rewrite'      => [ 'slug' => 'angebotsevent', 'with_front' => false ],
+    ] );
+
 }, 0 );
+
+// Admin list: show event date column for A-Events next to title
+add_filter( 'manage_angebotsevent_posts_columns', function( $columns ) {
+    $new_columns = [];
+    foreach ( $columns as $key => $label ) {
+        $new_columns[ $key ] = $label;
+        if ( $key === 'title' ) {
+            $new_columns['jhh_event_date'] = __( 'Veranstaltungsdatum', 'jhh-posts-block' );
+        }
+    }
+    if ( ! isset( $new_columns['jhh_event_date'] ) ) {
+        $new_columns['jhh_event_date'] = __( 'Veranstaltungsdatum', 'jhh-posts-block' );
+    }
+    return $new_columns;
+} );
+
+add_action( 'manage_angebotsevent_posts_custom_column', function( $column, $post_id ) {
+    if ( $column !== 'jhh_event_date' ) {
+        return;
+    }
+
+    $event_date = get_post_meta( $post_id, 'jhh_event_date', true );
+    if ( ! $event_date ) {
+        echo '—';
+        return;
+    }
+
+    $ts = strtotime( $event_date );
+    echo $ts ? esc_html( wp_date( 'd.m.Y', $ts ) ) : esc_html( $event_date );
+}, 10, 2 );
+
+add_filter( 'manage_edit-angebotsevent_sortable_columns', function( $columns ) {
+    $columns['jhh_event_date'] = 'jhh_event_date';
+    return $columns;
+} );
+
+add_action( 'pre_get_posts', function( $query ) {
+    if ( ! is_admin() || ! $query->is_main_query() ) {
+        return;
+    }
+    if ( $query->get( 'post_type' ) !== 'angebotsevent' ) {
+        return;
+    }
+    if ( $query->get( 'orderby' ) !== 'jhh_event_date' ) {
+        return;
+    }
+
+    $query->set( 'meta_key', 'jhh_event_date' );
+    $query->set( 'orderby', 'meta_value' );
+} );
 
 // ------------------------------------------------------------
 // Plugin-Einstellungen: Globaler Staff Card Style + Farben
@@ -95,39 +186,83 @@ add_action( 'admin_menu', function() {
 // Enqueue color picker on settings page
 add_action( 'admin_enqueue_scripts', function( $hook ) {
     if ( $hook !== 'settings_page_okja-angebote-settings' ) return;
+    wp_enqueue_script( 'jquery' );
     wp_enqueue_style( 'wp-color-picker' );
     wp_enqueue_script( 'wp-color-picker' );
-    wp_add_inline_script( 'wp-color-picker', "
-        jQuery(document).ready(function($){
-            $('.okja-color-picker').wpColorPicker({
-                change: function(event, ui) {
-                    okjaUpdatePreview();
-                },
-                clear: function() {
-                    okjaUpdatePreview();
+    $grainy_map = wp_json_encode( [
+        'grainy-1' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130481.jpg' ),
+        'grainy-2' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130499.jpg' ),
+        'grainy-3' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130555.jpg' ),
+    ] );
+
+    wp_add_inline_style( 'wp-color-picker',
+        '#okja-angebote-settings .okja-style-option{display:flex;align-items:center;gap:10px;}'
+        . '#okja-angebote-settings .okja-style-swatch{width:64px;height:40px;border-radius:8px;background:#141414;background-position:center;background-size:cover;background-repeat:no-repeat;display:inline-block;border:1px solid rgba(0,0,0,.12);}'
+        . '#okja-angebote-settings .okja-style-swatch.is-grainy::after{content:"";display:block;width:100%;height:100%;border-radius:8px;background:rgba(0,0,0,.35);}'
+    );
+
+    wp_add_inline_script( 'wp-color-picker',
+        "jQuery(document).ready(function($){
+            function initColorPickers(){
+                if (!$.fn.wpColorPicker) {
+                    setTimeout(initColorPickers, 50);
+                    return;
                 }
+                $('.okja-color-picker').each(function(){
+                    var $input = $(this);
+                    if ($input.data('wpWpColorPicker')) return; // already initialized
+                    $input.wpColorPicker({
+                        change: function(){ okjaUpdatePreview(); },
+                        clear: function(){ okjaUpdatePreview(); }
+                    });
+                });
+            }
+
+            initColorPickers();
+
+            $('input[name=okja_default_staff_style]').on('change', function(){
+                okjaUpdatePreview();
             });
-            
-            // Live preview update
+
+            var grainyMap = {$grainy_map};
+
             function okjaUpdatePreview() {
                 setTimeout(function() {
                     var bg = $('input[name=okja_staff_bg_color]').val() || '#2b2727';
                     var text = $('input[name=okja_staff_text_color]').val() || '#ffffff';
                     var accent = $('input[name=okja_staff_accent_color]').val() || '#b9aaff';
-                    
-                    $('#okja-staff-preview').css({
-                        'background': bg,
-                        'color': text
+                    var style = $('input[name=okja_default_staff_style]:checked').val() || 'simple';
+
+                    var $p = $('#okja-staff-preview');
+
+                    // Base text colors always reflect chosen values
+                    $p.css({
+                        color: text
                     });
                     $('#okja-staff-preview .okja-preview-contact').css('color', accent);
                     $('#okja-staff-preview .okja-preview-topline').css('background', 'linear-gradient(90deg, ' + accent + ', #ee0979, #8a2be2, #4169e1, #00c6ff)');
+
+                    // Background: either image-based grainy gradients or flat color
+                    if (grainyMap[style]) {
+                        $p.css({
+                            backgroundImage: 'url(' + grainyMap[style] + ')',
+                            backgroundPosition: 'center',
+                            backgroundSize: 'cover',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundColor: '#141414'
+                        });
+                    } else {
+                        $p.css({
+                            backgroundImage: 'none',
+                            backgroundColor: bg
+                        });
+                    }
                 }, 50);
             }
-            
-            // Initial preview
+
             okjaUpdatePreview();
-        });
-    " );
+        });"
+    );
 } );
 
 add_action( 'admin_init', function() {
@@ -136,7 +271,7 @@ add_action( 'admin_init', function() {
         'type' => 'string',
         'default' => 'simple',
         'sanitize_callback' => function( $val ) {
-            return in_array( $val, [ 'simple', 'notebook', 'aurora', 'custom' ], true ) ? $val : 'simple';
+            return in_array( $val, [ 'simple', 'notebook', 'aurora', 'grainy-1', 'grainy-2', 'grainy-3', 'custom' ], true ) ? $val : 'simple';
         }
     ] );
     
@@ -157,6 +292,25 @@ add_action( 'admin_init', function() {
         'sanitize_callback' => 'sanitize_hex_color'
     ] );
     
+    // Event display settings
+    register_setting( 'okja_settings_group', 'okja_events_show_in_angebot', [
+        'type' => 'string',
+        'default' => '1',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ '0', '1' ], true ) ? $val : '1';
+        }
+    ] );
+    register_setting( 'okja_settings_group', 'okja_events_future_days', [
+        'type' => 'integer',
+        'default' => 365,
+        'sanitize_callback' => 'absint'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_events_past_days', [
+        'type' => 'integer',
+        'default' => 0,
+        'sanitize_callback' => 'absint'
+    ] );
+
     // Hero animation settings
     register_setting( 'okja_settings_group', 'okja_hero_animation', [
         'type' => 'string',
@@ -224,6 +378,32 @@ add_action( 'admin_init', function() {
         'okja_colors_section'
     );
     
+    // Section: Events
+    add_settings_section(
+        'okja_events_section',
+        __( 'Events in Angeboten', 'jhh-posts-block' ),
+        function() {
+            echo '<p>' . esc_html__( 'Steuere, ob und welche Events auf der Einzelseite eines Angebots angezeigt werden.', 'jhh-posts-block' ) . '</p>';
+        },
+        'okja-angebote-settings'
+    );
+
+    add_settings_field(
+        'okja_events_show_in_angebot',
+        __( 'Events anzeigen', 'jhh-posts-block' ),
+        'okja_render_events_show_field',
+        'okja-angebote-settings',
+        'okja_events_section'
+    );
+
+    add_settings_field(
+        'okja_events_range',
+        __( 'Zeitraum', 'jhh-posts-block' ),
+        'okja_render_events_range_field',
+        'okja-angebote-settings',
+        'okja_events_section'
+    );
+
     // Section: Hero Animations
     add_settings_section(
         'okja_hero_section',
@@ -267,6 +447,18 @@ function okja_render_staff_style_field() {
             <input type="radio" name="okja_default_staff_style" value="aurora" <?php checked( $style, 'aurora' ); ?>>
             <?php esc_html_e( 'Pastell-Gradient – ohne Pin', 'jhh-posts-block' ); ?>
         </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_default_staff_style" value="grainy-1" <?php checked( $style, 'grainy-1' ); ?>>
+            <?php esc_html_e( 'Grainy Gradient (Bild 1)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_default_staff_style" value="grainy-2" <?php checked( $style, 'grainy-2' ); ?>>
+            <?php esc_html_e( 'Grainy Gradient (Bild 2)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_default_staff_style" value="grainy-3" <?php checked( $style, 'grainy-3' ); ?>>
+            <?php esc_html_e( 'Grainy Gradient (Bild 3)', 'jhh-posts-block' ); ?>
+        </label>
         <label style="display:block;">
             <input type="radio" name="okja_default_staff_style" value="custom" <?php checked( $style, 'custom' ); ?>>
             <?php esc_html_e( 'Benutzerdefiniert (eigene Farben unten)', 'jhh-posts-block' ); ?>
@@ -308,10 +500,20 @@ function okja_render_preview_field() {
     $bg = get_option( 'okja_staff_bg_color', '#2b2727' );
     $text = get_option( 'okja_staff_text_color', '#ffffff' );
     $accent = get_option( 'okja_staff_accent_color', '#b9aaff' );
+    $style = get_option( 'okja_default_staff_style', 'simple' );
+    $grainy_urls = [
+        'grainy-1' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130481.jpg' ),
+        'grainy-2' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130499.jpg' ),
+        'grainy-3' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130555.jpg' ),
+    ];
+    $preview_bg_css = 'background: ' . esc_attr( $bg ) . ';';
+    if ( isset( $grainy_urls[ $style ] ) ) {
+        $preview_bg_css = 'background-color:#141414;background-image:url(' . $grainy_urls[ $style ] . ');background-position:center;background-size:cover;background-repeat:no-repeat;';
+    }
     ?>
     <div id="okja-staff-preview" style="
         position: relative;
-        background: <?php echo esc_attr( $bg ); ?>;
+        <?php echo esc_attr( $preview_bg_css ); ?>
         color: <?php echo esc_attr( $text ); ?>;
         border-radius: 16px;
         padding: 24px 18px 18px;
@@ -348,6 +550,41 @@ function okja_render_preview_field() {
         </div>
     </div>
     <p class="description" style="margin-top: 12px;"><?php esc_html_e( 'Live-Vorschau der Kartenfarben. Änderungen werden sofort angezeigt.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_events_show_field() {
+    $show = get_option( 'okja_events_show_in_angebot', '1' );
+    ?>
+    <label>
+        <input type="hidden" name="okja_events_show_in_angebot" value="0">
+        <input type="checkbox" name="okja_events_show_in_angebot" value="1" <?php checked( $show, '1' ); ?>>
+        <?php esc_html_e( 'Events auf der Einzelseite des Angebots anzeigen', 'jhh-posts-block' ); ?>
+    </label>
+    <p class="description"><?php esc_html_e( 'Wenn aktiviert, werden zugeordnete Events automatisch unter dem Team-Bereich angezeigt.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_events_range_field() {
+    $future_days = (int) get_option( 'okja_events_future_days', 365 );
+    $past_days   = (int) get_option( 'okja_events_past_days', 0 );
+    ?>
+    <table class="form-table" style="margin:0;">
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;width:250px;"><?php esc_html_e( 'Zukünftige Events anzeigen (Tage)', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="number" name="okja_events_future_days" value="<?php echo esc_attr( $future_days ); ?>" min="0" max="3650" style="width:100px;">
+                <p class="description"><?php esc_html_e( 'Wie viele Tage in die Zukunft sollen Events angezeigt werden? 0 = unbegrenzt.', 'jhh-posts-block' ); ?></p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;"><?php esc_html_e( 'Vergangene Events anzeigen (Tage)', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="number" name="okja_events_past_days" value="<?php echo esc_attr( $past_days ); ?>" min="0" max="3650" style="width:100px;">
+                <p class="description"><?php esc_html_e( 'Wie viele Tage nach Ablauf sollen vergangene Events noch angezeigt werden? 0 = keine.', 'jhh-posts-block' ); ?></p>
+            </td>
+        </tr>
+    </table>
     <?php
 }
 
@@ -591,6 +828,214 @@ add_action( 'save_post_angebot', function( $post_id ) {
     }
 } );
 
+// ============================================================
+// Angebotsevent: Meta-Felder, Meta-Box & Save Handler
+// ============================================================
+
+// Register meta for angebotsevent
+add_action( 'init', function(){
+    $event_meta = [
+        'jhh_event_angebot_id' => [
+            'type'              => 'integer',
+            'sanitize_callback' => 'absint',
+        ],
+        'jhh_event_price' => [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+        ],
+        'jhh_event_max_participants' => [
+            'type'              => 'integer',
+            'sanitize_callback' => 'absint',
+        ],
+        'jhh_event_sold_out' => [
+            'type'              => 'boolean',
+            'sanitize_callback' => function( $v ) { return (bool) $v; },
+        ],
+        'jhh_event_date' => [
+            'type'              => 'string',
+            'sanitize_callback' => function( $v ) {
+                $v = sanitize_text_field( (string) $v );
+                return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $v ) ? $v : '';
+            },
+        ],
+        'jhh_event_time_start' => [
+            'type'              => 'string',
+            'sanitize_callback' => function( $v ) {
+                $v = sanitize_text_field( (string) $v );
+                return preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $v ) ? $v : '';
+            },
+        ],
+        'jhh_event_time_end' => [
+            'type'              => 'string',
+            'sanitize_callback' => function( $v ) {
+                $v = sanitize_text_field( (string) $v );
+                return preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $v ) ? $v : '';
+            },
+        ],
+        'jhh_event_cta_url' => [
+            'type'              => 'string',
+            'sanitize_callback' => 'esc_url_raw',
+        ],
+        'jhh_event_cta_label' => [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+        ],
+    ];
+    foreach ( $event_meta as $key => $args ) {
+        register_post_meta( 'angebotsevent', $key, array_merge( $args, [
+            'single'        => true,
+            'show_in_rest'  => true,
+            'auth_callback' => function(){ return current_user_can( 'edit_posts' ); },
+        ] ) );
+    }
+}, 5 );
+
+// Meta box for angebotsevent
+add_action( 'add_meta_boxes', function(){
+    add_meta_box(
+        'jhh_event_details',
+        __( 'Event-Details', 'jhh-posts-block' ),
+        'jhh_render_event_details_metabox',
+        'angebotsevent',
+        'normal',
+        'high'
+    );
+} );
+
+function jhh_render_event_details_metabox( $post ) {
+    wp_nonce_field( 'jhh_event_details_save', 'jhh_event_details_nonce' );
+
+    $angebot_id       = (int) get_post_meta( $post->ID, 'jhh_event_angebot_id', true );
+    $price            = get_post_meta( $post->ID, 'jhh_event_price', true );
+    $max_participants = (int) get_post_meta( $post->ID, 'jhh_event_max_participants', true );
+    $event_date       = get_post_meta( $post->ID, 'jhh_event_date', true );
+    $time_start       = get_post_meta( $post->ID, 'jhh_event_time_start', true );
+    $time_end         = get_post_meta( $post->ID, 'jhh_event_time_end', true );
+    $sold_out         = (bool) get_post_meta( $post->ID, 'jhh_event_sold_out', true );
+
+    // Get all angebote for dropdown
+    $angebote = get_posts( [
+        'post_type'      => 'angebot',
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'post_status'    => 'publish',
+    ] );
+
+    echo '<style>
+        .jhh-event-field { margin: 12px 0; }
+        .jhh-event-field label { display: block; font-weight: 600; margin-bottom: 4px; }
+        .jhh-event-field input, .jhh-event-field select { width: 100%; max-width: 400px; }
+        .jhh-event-field input[type="time"] { width: 160px; }
+        .jhh-event-field input[type="checkbox"] { width: auto; max-width: none; }
+        .jhh-event-row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .jhh-event-row .jhh-event-field { flex: 1; min-width: 160px; }
+        .jhh-event-soldout-field { margin-top: 16px; padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 6px; background: #f8f8f8; }
+    </style>';
+
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_angebot_id">' . esc_html__( 'Zugeordnetes Angebot', 'jhh-posts-block' ) . '</label>';
+    echo '<select name="jhh_event_angebot_id" id="jhh_event_angebot_id">';
+    echo '<option value="0">' . esc_html__( '— Kein Angebot —', 'jhh-posts-block' ) . '</option>';
+    foreach ( $angebote as $a ) {
+        printf( '<option value="%d" %s>%s</option>', $a->ID, selected( $angebot_id, $a->ID, false ), esc_html( $a->post_title ) );
+    }
+    echo '</select>';
+    echo '<p class="description">' . esc_html__( 'Ordne dieses Event einem bestehenden Angebot zu.', 'jhh-posts-block' ) . '</p>';
+    echo '</div>';
+
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_date">' . esc_html__( 'Datum', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="date" name="jhh_event_date" id="jhh_event_date" value="' . esc_attr( $event_date ) . '" />';
+    echo '</div>';
+
+    echo '<div class="jhh-event-row">';
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_time_start">' . esc_html__( 'Startzeit', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="time" name="jhh_event_time_start" id="jhh_event_time_start" value="' . esc_attr( $time_start ) . '" />';
+    echo '</div>';
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_time_end">' . esc_html__( 'Endzeit', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="time" name="jhh_event_time_end" id="jhh_event_time_end" value="' . esc_attr( $time_end ) . '" />';
+    echo '</div>';
+    echo '</div>';
+
+    echo '<div class="jhh-event-row">';
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_price">' . esc_html__( 'Preis', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="text" name="jhh_event_price" id="jhh_event_price" value="' . esc_attr( $price ) . '" placeholder="z.B. 5,00 € oder kostenlos" />';
+    echo '</div>';
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_max_participants">' . esc_html__( 'Max. Teilnehmer', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="number" name="jhh_event_max_participants" id="jhh_event_max_participants" value="' . esc_attr( $max_participants ?: '' ) . '" min="0" placeholder="0 = unbegrenzt" />';
+    echo '</div>';
+    echo '</div>';
+
+    echo '<input type="hidden" name="jhh_event_sold_out" value="0">';
+    echo '<div class="jhh-event-field jhh-event-soldout-field">';
+    echo '<label for="jhh_event_sold_out" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-weight:600;">';
+    echo '<input type="checkbox" id="jhh_event_sold_out" name="jhh_event_sold_out" value="1" ' . checked( $sold_out, true, false ) . ' style="width:auto;max-width:none;margin:0;">';
+    echo '<span>' . esc_html__( 'Ausgebucht', 'jhh-posts-block' ) . '</span>';
+    echo '</label>';
+    echo '<p class="description" style="margin:6px 0 0;">' . esc_html__( 'Markiert dieses Event als ausgebucht. Ein Banner wird über der Karte angezeigt.', 'jhh-posts-block' ) . '</p>';
+    echo '</div>';
+
+    // CTA / Anmeldung
+    $cta_url   = get_post_meta( $post->ID, 'jhh_event_cta_url', true );
+    $cta_label = get_post_meta( $post->ID, 'jhh_event_cta_label', true );
+
+    echo '<hr style="margin:20px 0 16px;border:0;border-top:1px solid #ddd;">';
+    echo '<h4 style="margin:0 0 8px;">' . esc_html__( 'Call to Action / Anmeldung', 'jhh-posts-block' ) . '</h4>';
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_cta_url">' . esc_html__( 'Link / E-Mail / Telefon', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="text" name="jhh_event_cta_url" id="jhh_event_cta_url" value="' . esc_attr( $cta_url ) . '" placeholder="https://… oder mailto:… oder tel:…" />';
+    echo '<p class="description">' . esc_html__( 'URL (https://…), E-Mail (mailto:…) oder Telefon (tel:…). Wird als Anmelde-Button angezeigt.', 'jhh-posts-block' ) . '</p>';
+    echo '</div>';
+    echo '<div class="jhh-event-field">';
+    echo '<label for="jhh_event_cta_label">' . esc_html__( 'Button-Text', 'jhh-posts-block' ) . '</label>';
+    echo '<input type="text" name="jhh_event_cta_label" id="jhh_event_cta_label" value="' . esc_attr( $cta_label ) . '" placeholder="Jetzt anmelden" />';
+    echo '</div>';
+}
+
+// Save handler for angebotsevent
+add_action( 'save_post_angebotsevent', function( $post_id ) {
+    if ( ! isset( $_POST['jhh_event_details_nonce'] ) || ! wp_verify_nonce( $_POST['jhh_event_details_nonce'], 'jhh_event_details_save' ) ) return;
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+    if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+
+    $fields = [
+        'jhh_event_angebot_id'       => 'absint',
+        'jhh_event_price'            => 'sanitize_text_field',
+        'jhh_event_max_participants' => 'absint',
+        'jhh_event_date'             => 'sanitize_text_field',
+        'jhh_event_time_start'       => 'sanitize_text_field',
+        'jhh_event_time_end'         => 'sanitize_text_field',
+    ];
+    foreach ( $fields as $key => $sanitize ) {
+        if ( isset( $_POST[ $key ] ) ) {
+            $value = call_user_func( $sanitize, wp_unslash( $_POST[ $key ] ) );
+            update_post_meta( $post_id, $key, $value );
+        }
+    }
+    // Sold out checkbox
+    $sold_out = isset( $_POST['jhh_event_sold_out'] ) ? (bool) absint( $_POST['jhh_event_sold_out'] ) : false;
+    update_post_meta( $post_id, 'jhh_event_sold_out', $sold_out );
+
+    // CTA fields
+    if ( isset( $_POST['jhh_event_cta_url'] ) ) {
+        $raw_cta = sanitize_text_field( wp_unslash( $_POST['jhh_event_cta_url'] ) );
+        // Allow mailto: and tel: URIs as-is, otherwise sanitise as URL
+        if ( preg_match( '/^(mailto:|tel:)/i', $raw_cta ) ) {
+            update_post_meta( $post_id, 'jhh_event_cta_url', $raw_cta );
+        } else {
+            update_post_meta( $post_id, 'jhh_event_cta_url', esc_url_raw( $raw_cta ) );
+        }
+    }
+    if ( isset( $_POST['jhh_event_cta_label'] ) ) {
+        update_post_meta( $post_id, 'jhh_event_cta_label', sanitize_text_field( wp_unslash( $_POST['jhh_event_cta_label'] ) ) );
+    }
+} );
+
 /* ----------------------------------------------------------
  * Excerpt Jugendarbeiter: Term-Meta, Admin-UI, Save + Frontend-Renderer
  * ----------------------------------------------------------
@@ -730,15 +1175,27 @@ add_action( 'edited_' . JHH_TAX_STAFF,  $__jhh_staff_save_cb );
 
 
 add_action( 'init', function() {
-    // Bump versions to ensure latest assets are loaded in editor and frontend
-    wp_register_style( 'jhh-posts-block-style', JHH_PB_URL . 'assets/style.css', [], '1.3.32' );
-    wp_register_style( 'jhh-posts-block-editor-style', JHH_PB_URL . 'assets/editor.css', [ 'wp-edit-blocks' ], '1.3.5' );
+    // Cache-busting: use file mtime so editor always gets the newest assets after updates.
+    $style_css  = JHH_PB_DIR . 'assets/style.css';
+    $editor_css = JHH_PB_DIR . 'assets/editor.css';
+    $editor_js  = JHH_PB_DIR . 'assets/editor.js';
+    $carousel_js = JHH_PB_DIR . 'assets/carousel.js';
+    $tilt_js     = JHH_PB_DIR . 'assets/tilt-effect.js';
+
+    $v_style   = file_exists( $style_css )  ? JHH_PB_VERSION . '.' . filemtime( $style_css )  : JHH_PB_VERSION;
+    $v_editorc = file_exists( $editor_css ) ? JHH_PB_VERSION . '.' . filemtime( $editor_css ) : JHH_PB_VERSION;
+    $v_editorj = file_exists( $editor_js )  ? JHH_PB_VERSION . '.' . filemtime( $editor_js )  : JHH_PB_VERSION;
+    $v_car     = file_exists( $carousel_js ) ? JHH_PB_VERSION . '.' . filemtime( $carousel_js ) : JHH_PB_VERSION;
+    $v_tilt    = file_exists( $tilt_js )     ? JHH_PB_VERSION . '.' . filemtime( $tilt_js )     : JHH_PB_VERSION;
+
+    wp_register_style( 'jhh-posts-block-style', JHH_PB_URL . 'assets/style.css', [], $v_style );
+    wp_register_style( 'jhh-posts-block-editor-style', JHH_PB_URL . 'assets/editor.css', [ 'wp-edit-blocks' ], $v_editorc );
 
     wp_register_script(
         'jhh-posts-block-editor',
         JHH_PB_URL . 'assets/editor.js',
         [ 'wp-blocks', 'wp-element', 'wp-components', 'wp-editor', 'wp-block-editor', 'wp-i18n', 'wp-data', 'wp-server-side-render' ],
-        '1.3.11',
+        $v_editorj,
         true
     );
 
@@ -747,7 +1204,7 @@ add_action( 'init', function() {
         'jhh-posts-carousel',
         JHH_PB_URL . 'assets/carousel.js',
         [],
-        '1.3.3',
+        $v_car,
         true
     );
 
@@ -756,7 +1213,7 @@ add_action( 'init', function() {
         'jhh-posts-tilt',
         JHH_PB_URL . 'assets/tilt-effect.js',
         [],
-        '1.0.0',
+        $v_tilt,
         true
     );
 
@@ -778,7 +1235,11 @@ add_action( 'enqueue_block_editor_assets', function() {
             'paedagogik'   => array_map( fn( $t ) => [ 'id' => (int) $t->term_id, 'name' => $t->name ], $paed_terms ),
             'tage'         => array_map( fn( $t ) => [ 'id' => (int) $t->term_id, 'name' => $t->name ], $tage_terms ),
         ],
-        'postTypes' => jhh_pb_get_post_types()
+        'postTypes' => jhh_pb_get_post_types(),
+        // Angebote list for Events block dropdown
+        'angebote' => array_map( function( $p ) {
+            return [ 'id' => (int) $p->ID, 'title' => $p->post_title ];
+        }, get_posts( [ 'post_type' => 'angebot', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC', 'post_status' => 'publish' ] ) ),
     ] );
 });
 
@@ -1021,6 +1482,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
             'showAuthor'      => [ 'type' => 'boolean', 'default' => false ],
             'showExcerpt'     => [ 'type' => 'boolean', 'default' => true ],
             'excerptLength'   => [ 'type' => 'number',  'default' => 20 ],
+            'showEventImageBadge' => [ 'type' => 'boolean', 'default' => false ],
             'showReadMore'    => [ 'type' => 'boolean', 'default' => true ],
             'showGradientLine' => [ 'type' => 'boolean', 'default' => false ],
             'gradientMarginTop' => [ 'type' => 'number', 'default' => 16 ],
@@ -1045,6 +1507,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
 
             // Back URL for single page (appended as ?back=... to post links)
             'backUrl'         => [ 'type' => 'string', 'default' => '' ],
+            'singleShowEvents'=> [ 'type' => 'boolean', 'default' => true ],
 
             // Style-Attribute
             'colorTitle'         => [ 'type' => 'string', 'default' => '' ],
@@ -1082,11 +1545,15 @@ add_action( 'edited_paedagogik', function( $term_id ) {
             'termOrder'     => [ 'type' => 'array',  'default' => [] ], // explicit order of selected terms
             'orderMode'     => [ 'type' => 'string', 'default' => 'custom' ], // custom | name_asc | name_desc
             'cardBgStyle'   => [ 'type' => 'string', 'default' => 'dark' ],
+            'cardCustomColor1'   => [ 'type' => 'string', 'default' => '#333333' ],
+            'cardCustomColor2'   => [ 'type' => 'string', 'default' => '#000000' ],
+            'cardCustomDirection'=> [ 'type' => 'string', 'default' => '135deg' ],
             'showAvatar'    => [ 'type' => 'boolean', 'default' => true ],
             'showName'      => [ 'type' => 'boolean', 'default' => true ],
             'showEmail'     => [ 'type' => 'boolean', 'default' => true ],
             'showBio'       => [ 'type' => 'boolean', 'default' => true ],
             'showOffers'    => [ 'type' => 'boolean', 'default' => true ],
+            'showOfferHover'=> [ 'type' => 'boolean', 'default' => true ],
             'maxOffers'     => [ 'type' => 'number',  'default' => 6 ],
             // Back URL for single page (appended as ?back=... to offer links)
             'backUrl'       => [ 'type' => 'string', 'default' => '' ],
@@ -1096,12 +1563,45 @@ add_action( 'edited_paedagogik', function( $term_id ) {
             'spacing' => [ 'margin', 'padding' ],
         ],
     ] );
+
+    // New dynamic block: JHH Events (Angebotsevents)
+    register_block_type( 'jhh/events', [
+        'api_version'     => 2,
+        'style'           => 'jhh-posts-block-style',
+        'editor_style'    => 'jhh-posts-block-editor-style',
+        'editor_script'   => 'jhh-posts-block-editor',
+        'render_callback' => 'jhh_events_render',
+        'attributes'      => [
+            'postsToShow'      => [ 'type' => 'number',  'default' => 6 ],
+            'columns'          => [ 'type' => 'number',  'default' => 3 ],
+            'gap'              => [ 'type' => 'number',  'default' => 16 ],
+            'filterByAngebot'  => [ 'type' => 'number',  'default' => 0 ],
+            'onlyFuture'       => [ 'type' => 'boolean', 'default' => true ],
+            'orderBy'          => [ 'type' => 'string',  'default' => 'event_date' ],
+            'order'            => [ 'type' => 'string',  'default' => 'ASC' ],
+            'showImage'        => [ 'type' => 'boolean', 'default' => true ],
+            'showPrice'        => [ 'type' => 'boolean', 'default' => true ],
+            'showDate'         => [ 'type' => 'boolean', 'default' => true ],
+            'showTime'         => [ 'type' => 'boolean', 'default' => true ],
+            'showParticipants' => [ 'type' => 'boolean', 'default' => true ],
+            'showAngebot'      => [ 'type' => 'boolean', 'default' => true ],
+            'showExcerpt'      => [ 'type' => 'boolean', 'default' => false ],
+        ],
+        'supports'        => [
+            'align'   => [ 'wide', 'full' ],
+            'spacing' => [ 'margin', 'padding' ],
+        ],
+    ] );
 } );
 
-// Use custom single template for Angebote CPT
+// Use custom single template for Angebote CPT and Angebotsevent CPT
 add_filter( 'single_template', function( $template ) {
     if ( is_singular( 'angebot' ) ) {
         $custom = JHH_PB_DIR . 'templates/single-angebot.php';
+        if ( file_exists( $custom ) ) return $custom;
+    }
+    if ( is_singular( 'angebotsevent' ) ) {
+        $custom = JHH_PB_DIR . 'templates/single-angebotsevent.php';
         if ( file_exists( $custom ) ) return $custom;
     }
     return $template;
@@ -1133,6 +1633,47 @@ function jhh_pb_sanitize_color( $color ) {
     if ( preg_match( '/^var\(--[a-zA-Z0-9\-]+\)$/', $color ) ) return $color;
     if ( preg_match( '/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(0|1|0?\.\d+))?\s*\)$/', $color ) ) return $color;
     return '';
+}
+
+/**
+ * Checks whether an Angebot has at least one upcoming linked A-Event.
+ */
+function jhh_pb_has_upcoming_event( $angebot_id ) {
+    static $cache = [];
+
+    $angebot_id = (int) $angebot_id;
+    if ( $angebot_id <= 0 ) {
+        return false;
+    }
+    if ( array_key_exists( $angebot_id, $cache ) ) {
+        return $cache[ $angebot_id ];
+    }
+
+    $q = new WP_Query( [
+        'post_type'      => 'angebotsevent',
+        'posts_per_page' => 1,
+        'post_status'    => 'publish',
+        'no_found_rows'  => true,
+        'fields'         => 'ids',
+        'meta_query'     => [
+            'relation' => 'AND',
+            [
+                'key'     => 'jhh_event_angebot_id',
+                'value'   => $angebot_id,
+                'compare' => '=',
+                'type'    => 'NUMERIC',
+            ],
+            [
+                'key'     => 'jhh_event_date',
+                'value'   => current_time( 'Y-m-d' ),
+                'compare' => '>=',
+                'type'    => 'DATE',
+            ],
+        ],
+    ] );
+
+    $cache[ $angebot_id ] = $q->have_posts();
+    return $cache[ $angebot_id ];
 }
 
 
@@ -1170,6 +1711,7 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
     $show_author   = ! empty( $attributes['showAuthor'] );
     $show_excerpt  = ! empty( $attributes['showExcerpt'] );
     $excerpt_len   = isset( $attributes['excerptLength'] ) ? max( 0, (int) $attributes['excerptLength'] ) : 20;
+    $show_event_image_badge = ! empty( $attributes['showEventImageBadge'] );
     $show_readmore = ! empty( $attributes['showReadMore'] );
     $show_gradient_line = ! empty( $attributes['showGradientLine'] );
     $gradient_margin_top = isset( $attributes['gradientMarginTop'] ) ? max( 0, (int) $attributes['gradientMarginTop'] ) : 16;
@@ -1243,6 +1785,7 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
     if ( ! empty( $attributes['backUrl'] ) ) {
         $back_url = esc_url_raw( $attributes['backUrl'] );
     }
+    $single_show_events = isset( $attributes['singleShowEvents'] ) ? (bool) $attributes['singleShowEvents'] : true;
 
     $unique = function_exists( 'wp_unique_id' ) ? wp_unique_id( 'jhh-pb-' ) : ( 'jhh-pb-' . uniqid() );
 
@@ -1350,6 +1893,9 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
                 if ( $back_url ) {
                     $permalink_with_back = add_query_arg( 'back', rawurlencode( $back_url ), $permalink );
                 }
+                if ( $post_type === 'angebot' ) {
+                    $permalink_with_back = add_query_arg( 'jhh_show_events', $single_show_events ? '1' : '0', $permalink_with_back );
+                }
                 $title      = get_the_title();
                 $bg_url     = get_the_post_thumbnail_url( $post_id, 'large' );
                 if ( ! $bg_url ) $bg_url = get_the_post_thumbnail_url( $post_id, 'medium' );
@@ -1406,11 +1952,16 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
                     $excerpt_text = $excerpt_len > 0 ? wp_trim_words( $excerpt_text, $excerpt_len, '…' ) : $excerpt_text;
                 }
                 $readmore_button = $show_readmore ? sprintf('<a class="jhh-slide-readmore" href="%s">%s</a>', esc_url( $permalink_with_back ), esc_html__( 'Weiterlesen', 'default' ) ) : '';
+                $image_badge_html = '';
+                if ( $show_event_image_badge && $post_type === 'angebot' && jhh_pb_has_upcoming_event( $post_id ) ) {
+                    $image_badge_html = '<span class="jhh-post-event-badge">Event verfügbar</span>';
+                }
 
                 printf(
                     '<div class="jhh-slide" role="option" aria-selected="%s">'
                   . '  <div class="jhh-slide-bg" style="background-image:url(%s);"></div>'
                   . '  <div class="jhh-slide-overlay">'
+                  . '    %s'
                   . '    <h3 class="jhh-slide-title">%s</h3>'
                   . '    %s'
                   . '    %s'
@@ -1418,6 +1969,7 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
                   . '</div>',
                     $slide_index === 0 ? 'true' : 'false',
                     esc_url( $bg_url ?: '' ),
+                    $image_badge_html,
                     esc_html( $title ),
                     $tax_html_car,
                     $excerpt_text ? '<p class="jhh-slide-excerpt">' . esc_html( $excerpt_text ) . '</p>' . $readmore_button : $readmore_button
@@ -1449,6 +2001,9 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
             if ( $back_url ) {
                 $permalink_with_back = add_query_arg( 'back', rawurlencode( $back_url ), $permalink );
             }
+            if ( $post_type === 'angebot' ) {
+                $permalink_with_back = add_query_arg( 'jhh_show_events', $single_show_events ? '1' : '0', $permalink_with_back );
+            }
             $title_html = $show_title ? sprintf(
                 '<h3 class="jhh-post-title"><a href="%s">%s</a></h3>',
                 esc_url( $permalink_with_back ),
@@ -1460,12 +2015,17 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
                 $thumb = get_the_post_thumbnail( $post_id, $image_size, [ 'class' => 'jhh-post-thumb', 'loading' => 'lazy' ] );
                 if ( $thumb ) {
                     $hover_class = ( $image_hover && $image_hover !== 'none' ) ? ' jhh-hover-' . esc_attr( $image_hover ) : '';
+                    $image_badge_html = '';
+                    if ( $show_event_image_badge && $post_type === 'angebot' && jhh_pb_has_upcoming_event( $post_id ) ) {
+                        $image_badge_html = '<span class="jhh-post-event-badge">Event verfügbar</span>';
+                    }
                     $image_html = sprintf(
-                        '<a class="jhh-post-image%s" href="%s" aria-label="%s">%s</a>',
+                        '<a class="jhh-post-image%s" href="%s" aria-label="%s">%s%s</a>',
                         $hover_class,
                         esc_url( $permalink_with_back ),
                         esc_attr( get_the_title() ),
-                        $thumb
+                        $thumb,
+                        $image_badge_html
                     );
                 }
             }
@@ -1636,13 +2196,24 @@ function jhh_team_render( $attributes, $content = '', $block = null ) {
     $term_order = array_map( 'intval', (array) ( $attributes['termOrder'] ?? [] ) );
     $order_mode = sanitize_key( $attributes['orderMode'] ?? 'custom' );
     $bg_style   = sanitize_key( $attributes['cardBgStyle'] ?? 'dark' );
-    $allowed_bg = [ 'none', 'dark', 'blue', 'purple', 'sunset', 'rainbow', 'notebook', 'simple' ];
+    $allowed_bg = [
+        'none', 'dark', 'blue', 'purple', 'sunset', 'rainbow', 'notebook', 'simple',
+        'grainy-1', 'grainy-2', 'grainy-3',
+        'custom', 'muted', 'charcoal'
+    ];
     if ( ! in_array( $bg_style, $allowed_bg, true ) ) { $bg_style = 'dark'; }
+    
+    // Custom background colors
+    $custom_color1 = sanitize_hex_color( $attributes['cardCustomColor1'] ?? '#333333' ) ?: '#333333';
+    $custom_color2 = sanitize_hex_color( $attributes['cardCustomColor2'] ?? '#000000' ) ?: '#000000';
+    $custom_direction = preg_replace( '/[^a-z0-9deg\s,]/i', '', $attributes['cardCustomDirection'] ?? '135deg' ) ?: '135deg';
+    
     $show_avatar = ! empty( $attributes['showAvatar'] );
     $show_name   = isset($attributes['showName']) ? (bool)$attributes['showName'] : true;
     $show_email  = ! empty( $attributes['showEmail'] );
     $show_bio    = ! empty( $attributes['showBio'] );
     $show_offers = ! empty( $attributes['showOffers'] );
+    $show_offer_hover = isset( $attributes['showOfferHover'] ) ? (bool) $attributes['showOfferHover'] : true;
     $max_offers  = max( 0, (int) ( $attributes['maxOffers'] ?? 6 ) );
 
     // Back URL for single view (appended to offer links)
@@ -1732,10 +2303,10 @@ function jhh_team_render( $attributes, $content = '', $block = null ) {
                         $href = add_query_arg( 'back', rawurlencode( $back_url ), $perma );
                     }
                     
-                    // Get weekdays for tooltip
+                    // Get weekdays for tooltip (only if hover tooltips enabled)
                     $days = get_post_meta( $pid, 'jhh_days', true );
                     $tooltip_html = '';
-                    if ( is_array( $days ) && ! empty( $days ) ) {
+                    if ( $show_offer_hover && is_array( $days ) && ! empty( $days ) ) {
                         $day_abbrev = [
                             'montag' => 'Mo', 'dienstag' => 'Di', 'mittwoch' => 'Mi',
                             'donnerstag' => 'Do', 'freitag' => 'Fr', 'samstag' => 'Sa', 'sonntag' => 'So'
@@ -1761,7 +2332,18 @@ function jhh_team_render( $attributes, $content = '', $block = null ) {
             }
         }
 
-    echo '<article class="jhh-team-card bg-' . esc_attr( $bg_style ) . '">';
+    // Build card style attribute for custom backgrounds
+    $card_inline_style = '';
+    if ( $bg_style === 'custom' ) {
+        $card_inline_style = sprintf(
+            'background: linear-gradient(%s, %s, %s); color: #fff;',
+            esc_attr( $custom_direction ),
+            esc_attr( $custom_color1 ),
+            esc_attr( $custom_color2 )
+        );
+    }
+    
+    echo '<article class="jhh-team-card bg-' . esc_attr( $bg_style ) . '"' . ( $card_inline_style ? ' style="' . esc_attr( $card_inline_style ) . '"' : '' ) . '>';
         echo '<div class="jhh-team-inner">';
         if ( $img ) echo $img;
         echo '<div class="jhh-team-meta">';
@@ -1781,3 +2363,177 @@ function jhh_team_render( $attributes, $content = '', $block = null ) {
     return ob_get_clean();
 }
 
+
+/**
+ * Render callback for the JHH Events block.
+ * Displays Angebotsevents as attractive event cards.
+ */
+function jhh_events_render( $attributes, $content = '', $block = null ) {
+    wp_enqueue_style( 'jhh-posts-block-style' );
+
+    $posts_to_show    = max( 1, (int) ( $attributes['postsToShow'] ?? 6 ) );
+    $columns          = max( 1, (int) ( $attributes['columns'] ?? 3 ) );
+    $gap              = max( 0, (int) ( $attributes['gap'] ?? 16 ) );
+    $filter_angebot   = (int) ( $attributes['filterByAngebot'] ?? 0 );
+    $only_future      = ! empty( $attributes['onlyFuture'] );
+    $order_by         = sanitize_key( $attributes['orderBy'] ?? 'event_date' );
+    $order            = ( isset( $attributes['order'] ) && strtoupper( $attributes['order'] ) === 'DESC' ) ? 'DESC' : 'ASC';
+    $show_image       = isset( $attributes['showImage'] ) ? (bool) $attributes['showImage'] : true;
+    $show_price       = isset( $attributes['showPrice'] ) ? (bool) $attributes['showPrice'] : true;
+    $show_date        = isset( $attributes['showDate'] ) ? (bool) $attributes['showDate'] : true;
+    $show_time        = isset( $attributes['showTime'] ) ? (bool) $attributes['showTime'] : true;
+    $show_participants= isset( $attributes['showParticipants'] ) ? (bool) $attributes['showParticipants'] : true;
+    $show_angebot     = isset( $attributes['showAngebot'] ) ? (bool) $attributes['showAngebot'] : true;
+    $show_excerpt     = ! empty( $attributes['showExcerpt'] );
+
+    // Build query
+    $args = [
+        'post_type'           => 'angebotsevent',
+        'posts_per_page'      => $posts_to_show,
+        'post_status'         => 'publish',
+        'no_found_rows'       => true,
+        'ignore_sticky_posts' => true,
+    ];
+
+    // Meta query for filtering
+    $meta_query = [];
+    if ( $filter_angebot > 0 ) {
+        $meta_query[] = [
+            'key'     => 'jhh_event_angebot_id',
+            'value'   => $filter_angebot,
+            'compare' => '=',
+            'type'    => 'NUMERIC',
+        ];
+    }
+    if ( $only_future ) {
+        $meta_query[] = [
+            'key'     => 'jhh_event_date',
+            'value'   => current_time( 'Y-m-d' ),
+            'compare' => '>=',
+            'type'    => 'DATE',
+        ];
+    }
+
+    // Ordering
+    if ( $order_by === 'event_date' ) {
+        $meta_query['event_date_clause'] = [
+            'key'     => 'jhh_event_date',
+            'compare' => 'EXISTS',
+            'type'    => 'DATE',
+        ];
+        $args['orderby'] = [ 'event_date_clause' => $order ];
+    } else {
+        $args['orderby'] = $order_by;
+        $args['order']   = $order;
+    }
+
+    if ( ! empty( $meta_query ) ) {
+        if ( count( $meta_query ) > 1 ) {
+            $meta_query['relation'] = 'AND';
+        }
+        $args['meta_query'] = $meta_query;
+    }
+
+    $q = new WP_Query( $args );
+    if ( ! $q->have_posts() ) {
+        return '<div class="jhh-events-block jhh-empty">Keine Events gefunden.</div>';
+    }
+
+    $unique = function_exists( 'wp_unique_id' ) ? wp_unique_id( 'jhh-ev-' ) : ( 'jhh-ev-' . uniqid() );
+
+    ob_start();
+    echo '<div class="jhh-events-block ' . esc_attr( $unique ) . '">';
+    echo '<div class="jhh-events-grid" style="display:grid;gap:' . (int) $gap . 'px;grid-template-columns:repeat(' . (int) $columns . ',minmax(0,1fr));">';
+
+    while ( $q->have_posts() ) : $q->the_post();
+        $pid          = get_the_ID();
+        $permalink    = get_permalink( $pid );
+        $event_date   = get_post_meta( $pid, 'jhh_event_date', true );
+        $time_start   = get_post_meta( $pid, 'jhh_event_time_start', true );
+        $time_end     = get_post_meta( $pid, 'jhh_event_time_end', true );
+        $price        = get_post_meta( $pid, 'jhh_event_price', true );
+        $max_part     = (int) get_post_meta( $pid, 'jhh_event_max_participants', true );
+        $angebot_id   = (int) get_post_meta( $pid, 'jhh_event_angebot_id', true );
+        $sold_out     = (bool) get_post_meta( $pid, 'jhh_event_sold_out', true );
+
+        // Format date
+        $date_display = '';
+        if ( $event_date ) {
+            $ts = strtotime( $event_date );
+            if ( $ts ) {
+                $date_display = wp_date( 'j. F Y', $ts );
+            }
+        }
+
+        // Format time
+        $time_display = '';
+        if ( $time_start && $time_end ) {
+            $time_display = esc_html( $time_start ) . ' – ' . esc_html( $time_end ) . ' Uhr';
+        } elseif ( $time_start ) {
+            $time_display = esc_html( $time_start ) . ' Uhr';
+        }
+
+        $card_class = 'jhh-event-card';
+        if ( $sold_out ) $card_class .= ' jhh-event--sold-out';
+        echo '<a class="' . esc_attr( $card_class ) . '" href="' . esc_url( $permalink ) . '">';
+
+        // Sold out banner
+        if ( $sold_out ) {
+            echo '<span class="jhh-event-sold-out-banner">' . esc_html__( 'Ausgebucht', 'jhh-posts-block' ) . '</span>';
+        }
+
+        // Image
+        if ( $show_image && has_post_thumbnail( $pid ) ) {
+            echo '<div class="jhh-event-image">';
+            the_post_thumbnail( 'medium', [ 'class' => 'jhh-event-thumb', 'loading' => 'lazy' ] );
+            echo '</div>';
+        }
+
+        echo '<div class="jhh-event-body">';
+
+        // Title
+        echo '<h3 class="jhh-event-title">' . esc_html( get_the_title() ) . '</h3>';
+
+        // Meta badges
+        echo '<div class="jhh-event-meta">';
+        if ( $show_date && $date_display ) {
+            echo '<span class="jhh-event-badge jhh-event-date-badge">📅 ' . esc_html( $date_display ) . '</span>';
+        }
+        if ( $show_time && $time_display ) {
+            echo '<span class="jhh-event-badge jhh-event-time-badge">🕐 ' . $time_display . '</span>';
+        }
+        if ( $show_price && $price ) {
+            echo '<span class="jhh-event-badge jhh-event-price-badge">💰 ' . esc_html( $price ) . '</span>';
+        }
+        if ( $show_participants && $max_part > 0 ) {
+            echo '<span class="jhh-event-badge jhh-event-part-badge">👥 max. ' . (int) $max_part . ' Teilnehmer</span>';
+        }
+        echo '</div>';
+
+        // Excerpt
+        if ( $show_excerpt ) {
+            $text = has_excerpt( $pid ) ? get_the_excerpt( $pid ) : wp_strip_all_tags( get_the_content( null, false, $pid ) );
+            $text = wp_trim_words( $text, 15, '…' );
+            if ( $text ) {
+                echo '<p class="jhh-event-excerpt">' . esc_html( $text ) . '</p>';
+            }
+        }
+
+        // Linked Angebot
+        if ( $show_angebot && $angebot_id > 0 ) {
+            $angebot_title = get_the_title( $angebot_id );
+            if ( $angebot_title ) {
+                echo '<span class="jhh-event-angebot-link">↳ ' . esc_html( $angebot_title ) . '</span>';
+            }
+        }
+
+        echo '</div>'; // body
+        echo '</a>'; // card
+    endwhile;
+    wp_reset_postdata();
+
+    echo '</div>'; // grid
+    echo '</div>'; // block
+
+    return ob_get_clean();
+}

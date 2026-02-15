@@ -138,12 +138,15 @@ while ( have_posts() ) : the_post();
                         $staff_style = $post_style;
                     }
                     
-                    // Allow: simple | notebook | aurora | custom (fallback: simple)
-                    $staff_style = in_array( $staff_style, [ 'simple', 'notebook', 'aurora', 'custom' ], true ) ? $staff_style : 'simple';
+                    // Allow: simple | notebook | aurora | grainy-1..3 | custom (fallback: simple)
+                    $staff_style = in_array( $staff_style, [ 'simple', 'notebook', 'aurora', 'grainy-1', 'grainy-2', 'grainy-3', 'custom' ], true ) ? $staff_style : 'simple';
                     $style_map   = [
                         'simple'   => 'bg-simple',
                         'notebook' => 'bg-notebook',
                         'aurora'   => 'bg-aurora',
+                        'grainy-1'  => 'bg-grainy-1',
+                        'grainy-2'  => 'bg-grainy-2',
+                        'grainy-3'  => 'bg-grainy-3',
                         'custom'   => 'bg-custom',
                     ];
                     $style_class = $style_map[ $staff_style ] ?? 'bg-simple';
@@ -163,43 +166,194 @@ while ( have_posts() ) : the_post();
                     }
                 ?>
                 <div class="jhh-staff-card <?php echo esc_attr( $style_class ); ?>"<?php echo $custom_inline ? ' style="' . $custom_inline . '"' : ''; ?>>
-                    <span class="jhh-staff-topline" aria-hidden="true"></span>
                     <div class="jhh-staff-inner">
                         <?php if ( $img ) echo $img; ?>
                     </div>
-                    <div class="jhh-staff-meta">
-                        <h2 class="jhh-staff-name"><?php echo esc_html( $t->name ); ?></h2>
-                        <?php if ( $funktion ) : ?><div class="jhh-staff-role"><?php echo esc_html( $funktion ); ?></div><?php endif; ?>
-                        <?php if ( $has_contact ) : ?>
-                            <?php
-                            // Kontakt als E-Mail-Link ausgeben, wenn er wie eine E-Mail aussieht
-                            $c_raw   = trim( (string) $contact );
-                            // Anzeige-Text: (at), [at], " at " durch @ ersetzen
-                            $display = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
-                            // Kandidat für mailto: – Sonderformen in echtes @ wandeln und Whitespace entfernen
-                            $candidate = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
-                            $candidate = preg_replace( '/\s+/', '', $candidate );
-                            // Falls ein führendes mailto: enthalten ist, entfernen
-                            $candidate = preg_replace( '/^mailto:/i', '', $candidate );
-                            $email     = sanitize_email( $candidate );
-                            if ( $email && strpos( $email, '@' ) !== false ) : ?>
-                                <a class="jhh-staff-contact" href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $display ); ?></a>
-                            <?php else : ?>
-                                <div class="jhh-staff-contact"><?php echo esc_html( $display ); ?></div>
+                    <div class="jhh-staff-content">
+                        <div class="jhh-staff-meta">
+                            <h2 class="jhh-staff-name"><?php echo esc_html( $t->name ); ?></h2>
+                            <?php if ( $funktion ) : ?><div class="jhh-staff-role"><?php echo esc_html( $funktion ); ?></div><?php endif; ?>
+                            <?php if ( $has_contact ) : ?>
+                                <?php
+                                // Kontakt als E-Mail-Link ausgeben, wenn er wie eine E-Mail aussieht
+                                $c_raw   = trim( (string) $contact );
+                                // Anzeige-Text: (at), [at], " at " durch @ ersetzen
+                                $display = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
+                                // Kandidat für mailto: – Sonderformen in echtes @ wandeln und Whitespace entfernen
+                                $candidate = preg_replace( '/\s*(\(at\)|\[at\]|\sat\s)\s*/i', '@', $c_raw );
+                                $candidate = preg_replace( '/\s+/', '', $candidate );
+                                // Falls ein führendes mailto: enthalten ist, entfernen
+                                $candidate = preg_replace( '/^mailto:/i', '', $candidate );
+                                $email     = sanitize_email( $candidate );
+                                if ( $email && strpos( $email, '@' ) !== false ) : ?>
+                                    <a class="jhh-staff-contact" href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $display ); ?></a>
+                                <?php else : ?>
+                                    <div class="jhh-staff-contact"><?php echo esc_html( $display ); ?></div>
+                                <?php endif; ?>
                             <?php endif; ?>
-                        <?php endif; ?>
+                        </div>
+                        <?php if ( $has_bio ) : ?><div class="jhh-staff-bio"><?php echo wp_kses_post( wpautop( $bio ) ); ?></div><?php endif; ?>
                     </div>
-                    <?php if ( $has_bio ) : ?><div class="jhh-staff-bio"><?php echo wp_kses_post( wpautop( $bio ) ); ?></div><?php endif; ?>
                 </div>
                 <?php
                 $cards_html .= ob_get_clean();
             endforeach;
             if ( $cards_html ) : ?>
-                <section class="jhh-staff">
+                <?php
+                $staff_count = is_array( $staff_terms ) ? count( $staff_terms ) : 0;
+                $staff_layout_class = '';
+                if ( $staff_count === 1 ) {
+                    $staff_layout_class = 'jhh-staff--1';
+                } elseif ( $staff_count === 2 ) {
+                    $staff_layout_class = 'jhh-staff--2';
+                }
+                ?>
+                <section class="jhh-staff <?php echo esc_attr( $staff_layout_class ); ?>">
                     <?php echo $cards_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 </section>
             <?php endif; ?>
         <?php endif; ?>
+
+        <?php
+        // ============================================================
+        // Kommende Events für dieses Angebot
+        // ============================================================
+        $show_events = get_option( 'okja_events_show_in_angebot', '1' );
+        if ( isset( $_GET['jhh_show_events'] ) ) {
+            $show_events = ( wp_unslash( $_GET['jhh_show_events'] ) === '0' ) ? '0' : '1';
+        }
+        if ( $show_events === '1' ) :
+        $future_days = (int) get_option( 'okja_events_future_days', 365 );
+        $past_days   = (int) get_option( 'okja_events_past_days', 0 );
+        $today       = current_time( 'Y-m-d' );
+
+        $date_meta_query = [];
+        if ( $future_days > 0 ) {
+            $date_meta_query[] = [
+                'key'     => 'jhh_event_date',
+                'value'   => wp_date( 'Y-m-d', strtotime( "+{$future_days} days" ) ),
+                'compare' => '<=',
+                'type'    => 'DATE',
+            ];
+        }
+        if ( $past_days > 0 ) {
+            $date_meta_query[] = [
+                'key'     => 'jhh_event_date',
+                'value'   => wp_date( 'Y-m-d', strtotime( "-{$past_days} days" ) ),
+                'compare' => '>=',
+                'type'    => 'DATE',
+            ];
+        } else {
+            $date_meta_query[] = [
+                'key'     => 'jhh_event_date',
+                'value'   => $today,
+                'compare' => '>=',
+                'type'    => 'DATE',
+            ];
+        }
+
+        $event_args = [
+            'post_type'      => 'angebotsevent',
+            'posts_per_page' => 6,
+            'post_status'    => 'publish',
+            'meta_query'     => array_merge(
+                [ 'relation' => 'AND' ],
+                [ [
+                    'key'     => 'jhh_event_angebot_id',
+                    'value'   => $post_id,
+                    'compare' => '=',
+                    'type'    => 'NUMERIC',
+                ] ],
+                $date_meta_query
+            ),
+            'meta_key'       => 'jhh_event_date',
+            'orderby'        => 'meta_value',
+            'order'          => 'ASC',
+            'no_found_rows'  => true,
+        ];
+        $events_q = new WP_Query( $event_args );
+
+        if ( $events_q->have_posts() ) :
+        ?>
+        <section class="jhh-events-section">
+            <h3><?php esc_html_e( 'Kommende Events', 'jhh-posts-block' ); ?></h3>
+            <div class="jhh-events-inline-grid">
+                <?php while ( $events_q->have_posts() ) : $events_q->the_post();
+                    $ev_id     = get_the_ID();
+                    $ev_date   = get_post_meta( $ev_id, 'jhh_event_date', true );
+                    $ev_time_s = get_post_meta( $ev_id, 'jhh_event_time_start', true );
+                    $ev_time_e = get_post_meta( $ev_id, 'jhh_event_time_end', true );
+                    $ev_price  = get_post_meta( $ev_id, 'jhh_event_price', true );
+                    $ev_max    = (int) get_post_meta( $ev_id, 'jhh_event_max_participants', true );
+                    $ev_thumb  = get_the_post_thumbnail( $ev_id, 'medium', [ 'class' => 'jhh-event-inline-thumb' ] );
+                    $ev_link   = get_permalink( $ev_id );
+
+                    // Date formatting
+                    $ev_date_display = '';
+                    $ev_day_short    = '';
+                    $ev_month_short  = '';
+                    $ev_day_num      = '';
+                    if ( $ev_date ) {
+                        $ev_ts = strtotime( $ev_date );
+                        if ( $ev_ts ) {
+                            $ev_date_display = wp_date( 'j. M Y', $ev_ts );
+                            $ev_day_short    = wp_date( 'D', $ev_ts );
+                            $ev_month_short  = wp_date( 'M', $ev_ts );
+                            $ev_day_num      = wp_date( 'j', $ev_ts );
+                        }
+                    }
+
+                    // Time formatting
+                    $ev_time_display = '';
+                    if ( $ev_time_s && $ev_time_e ) {
+                        $ev_time_display = esc_html( $ev_time_s ) . ' – ' . esc_html( $ev_time_e );
+                    } elseif ( $ev_time_s ) {
+                        $ev_time_display = esc_html( $ev_time_s );
+                    }
+
+                    $ev_sold_out = (bool) get_post_meta( $ev_id, 'jhh_event_sold_out', true );
+                    $ev_excerpt  = has_excerpt( $ev_id ) ? get_the_excerpt( $ev_id ) : wp_strip_all_tags( get_the_content( null, false, $ev_id ) );
+                    $ev_excerpt  = wp_trim_words( $ev_excerpt, 20, '…' );
+                    $ev_is_past  = ( $ev_date && strtotime( $ev_date ) < strtotime( $today ) );
+                ?>
+                <a class="jhh-event-inline-card<?php echo $ev_sold_out ? ' jhh-event--sold-out' : ''; ?><?php echo $ev_is_past ? ' jhh-event--past' : ''; ?>" href="<?php echo esc_url( $ev_link ); ?>">
+                    <?php if ( $ev_sold_out ) : ?>
+                    <span class="jhh-event-sold-out-banner"><?php esc_html_e( 'Ausgebucht', 'jhh-posts-block' ); ?></span>
+                    <?php endif; ?>
+                    <?php if ( $ev_thumb ) : ?>
+                    <div class="jhh-event-inline-image">
+                        <?php echo $ev_thumb; ?>
+                        <?php if ( $ev_excerpt ) : ?>
+                        <div class="jhh-event-hover-desc"><p><?php echo esc_html( $ev_excerpt ); ?></p></div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                    <div class="jhh-event-inline-body">
+                        <div class="jhh-event-inline-date-block">
+                            <span class="jhh-event-inline-day"><?php echo esc_html( $ev_day_num ); ?></span>
+                            <span class="jhh-event-inline-month"><?php echo esc_html( $ev_month_short ); ?></span>
+                        </div>
+                        <div class="jhh-event-inline-info">
+                            <h4 class="jhh-event-inline-title"><?php echo esc_html( get_the_title() ); ?></h4>
+                            <div class="jhh-event-inline-meta">
+                                <?php if ( $ev_time_display ) : ?>
+                                <span>🕐 <?php echo $ev_time_display; ?></span>
+                                <?php endif; ?>
+                                <?php if ( $ev_price ) : ?>
+                                <span>💰 <?php echo esc_html( $ev_price ); ?></span>
+                                <?php endif; ?>
+                                <?php if ( $ev_max > 0 ) : ?>
+                                <span>👥 <?php echo (int) $ev_max; ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <?php endwhile; wp_reset_postdata(); ?>
+            </div>
+        </section>
+        <?php endif; // events_q have_posts ?>
+        <?php endif; // show_events ?>
 
         <?php
         // Weitere Angebote – zeige alle anderen Angebote (max 5), zufällig sortiert

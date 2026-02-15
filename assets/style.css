@@ -221,6 +221,7 @@
   display: block;
   overflow: hidden;
   border-radius: 10px 10px 0 0;
+  position: relative;
 }
 .jhh-post-image img.jhh-post-thumb {
   width: 100%;
@@ -231,6 +232,27 @@
   border-top-right-radius: 10px;
   transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
   transform-origin: center center;
+}
+
+.jhh-post-event-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(18, 18, 18, 0.78);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 /* Image Hover Effects for jhh-post-image */
@@ -440,10 +462,13 @@
    SINGLE: Angebot – Hero, Staff, Related
    ========================================== */
 
-/* Hide Neve theme post cover header on single-angebot pages */
+/* Hide Neve theme post cover header on single-angebot and single-angebotsevent pages */
 .single-angebot .nv-post-cover,
 .single-angebot .nv-overlay,
-.single-angebot .nv-post-cover .nv-overlay {
+.single-angebot .nv-post-cover .nv-overlay,
+.single-angebotsevent .nv-post-cover,
+.single-angebotsevent .nv-overlay,
+.single-angebotsevent .nv-post-cover .nv-overlay {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
@@ -985,17 +1010,92 @@
 }
 html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
 
-/* Staff cards */
-.jhh-staff{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 18px; margin: 28px 0; }
-.jhh-staff-card{ position:relative; background: #2b2727; color:#fff; border-radius: 16px; padding: 18px; overflow:hidden; text-align: center; }
-.jhh-staff-topline{ position:absolute; left:0; right:0; top:0; height:6px; background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff, #00ff7f, #ffd700, #ff6a00); }
-.jhh-staff-inner{ display:flex; justify-content: center; margin-bottom: 12px; }
-.jhh-staff-avatar{ border-radius: 50%; width: 116px; height:116px; object-fit:cover; }
-.jhh-staff-meta{ margin-bottom: 10px; }
-.jhh-staff-name{ margin:0; font-size: 1.4rem; }
-.jhh-staff-role{ opacity:.9; margin-top:4px; font-weight:600; }
-.jhh-staff-contact{ color:#b9aaff; margin-top:4px; font-weight:700; display: block; }
-.jhh-staff-bio{ margin-top:10px; opacity:.95; text-align: left; }
+/* Staff cards – horizontal layout */
+.jhh-staff{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin: 28px 0; align-items: stretch; }
+.jhh-staff-card{ 
+  position:relative; 
+  background: #2b2727; 
+  color:#fff; 
+  border-radius: 16px; 
+  overflow:hidden; 
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+}
+/* Topline als vertikaler Akzent links */
+.jhh-staff-topline{ 
+  display: none; /* verstecken im neuen Design */
+}
+/* Avatar-Container: links, fixe Breite */
+.jhh-staff-inner{ 
+  flex: 0 0 140px; 
+  min-height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(0,0,0,.15);
+}
+.jhh-staff-avatar{ 
+  border-radius: 0; 
+  width: 100%; 
+  height: auto;
+  min-height: 100%;
+  object-fit: cover; 
+  object-position: top center;
+}
+/* Content-Container rechts */
+.jhh-staff-content{
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+/* Inhalt rechts */
+.jhh-staff-meta{ 
+  padding: 18px 20px 8px;
+  flex: 1 1 auto;
+}
+.jhh-staff-name{ 
+  margin: 0; 
+  font-size: 1.6rem; 
+  font-weight: 700;
+  line-height: 1.2;
+}
+.jhh-staff-role{ 
+  opacity: .85; 
+  margin-top: 4px; 
+  font-weight: 600; 
+  font-size: 0.95rem;
+}
+.jhh-staff-contact{ 
+  color: #b9aaff; 
+  margin-top: 6px; 
+  font-weight: 600; 
+  display: block; 
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.jhh-staff-contact:hover{ text-decoration: underline; }
+.jhh-staff-bio{ 
+  padding: 0 20px 18px;
+  opacity: .92; 
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.jhh-staff-bio p{ margin: 0 0 8px; }
+.jhh-staff-bio p:last-child{ margin-bottom: 0; }
+
+/* Responsive: auf Mobil wieder vertikal */
+@media (max-width: 480px){
+  .jhh-staff-card{ flex-direction: column; text-align: center; }
+  .jhh-staff-inner{ flex: 0 0 auto; min-height: 160px; max-height: 200px; }
+  .jhh-staff-avatar{ object-position: center top; }
+  .jhh-staff-meta{ padding: 16px 16px 8px; }
+  .jhh-staff-bio{ padding: 0 16px 16px; text-align: left; }
+}
 
 /* Related offers */
 .jhh-related{ margin: 36px 0 20px; }
@@ -1101,7 +1201,6 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
     display: none;
   }
 }
-}
 
 /* ==========================================
   NEW: Simple staff card variant (dark, with rainbow top line)
@@ -1123,8 +1222,60 @@ html[data-neve-theme="dark"] .jhh-back-link{ background:#2b2727; color:#fff; }
   background: linear-gradient(90deg, var(--okja-accent, #b9aaff), #ee0979, #8a2be2, #4169e1, #00c6ff);
 }
 
-/* Single page: staff one-column layout (stacked) */
-.jhh-single-angebot .jhh-staff{ grid-template-columns: 1fr; }
+/* ==========================================
+  NEW: Grainy gradient backgrounds (image-based)
+  - matches OKJA Team block options
+  ========================================== */
+.jhh-staff-card.bg-grainy-1,
+.jhh-staff-card.bg-grainy-2,
+.jhh-staff-card.bg-grainy-3{
+  background-color: #141414;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #fff;
+}
+.jhh-staff-card.bg-grainy-1{ background-image: url('pexels-codioful-7130481.jpg'); }
+.jhh-staff-card.bg-grainy-2{ background-image: url('pexels-codioful-7130499.jpg'); }
+.jhh-staff-card.bg-grainy-3{ background-image: url('pexels-codioful-7130555.jpg'); }
+.jhh-staff-card.bg-grainy-1::before,
+.jhh-staff-card.bg-grainy-2::before,
+.jhh-staff-card.bg-grainy-3::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.jhh-staff-card.bg-grainy-1 > *,
+.jhh-staff-card.bg-grainy-2 > *,
+.jhh-staff-card.bg-grainy-3 > *{ position: relative; z-index: 1; }
+.jhh-staff-card.bg-grainy-1 .jhh-staff-topline,
+.jhh-staff-card.bg-grainy-2 .jhh-staff-topline,
+.jhh-staff-card.bg-grainy-3 .jhh-staff-topline{ z-index: 2; }
+
+/* Single page: staff layout adjustments
+   - 1 card: 2/3 width, centered (desktop)
+   - 2 cards: 2 columns
+   - 3+ cards: 3 columns
+   - tablet: 2 columns
+   - mobile: 1 column
+*/
+.jhh-single-angebot .jhh-staff{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.jhh-single-angebot .jhh-staff.jhh-staff--2{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.jhh-single-angebot .jhh-staff.jhh-staff--1{ grid-template-columns: 1fr; justify-items: center; }
+.jhh-single-angebot .jhh-staff.jhh-staff--1 .jhh-staff-card{ width: 66.666%; max-width: 66.666%; }
+
+@media (max-width: 900px) {
+  .jhh-single-angebot .jhh-staff{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jhh-single-angebot .jhh-staff.jhh-staff--1 .jhh-staff-card{ width: 100%; max-width: 100%; }
+}
+@media (max-width: 600px) {
+  .jhh-single-angebot .jhh-staff{ grid-template-columns: 1fr; }
+  .jhh-single-angebot .jhh-staff.jhh-staff--2{ grid-template-columns: 1fr; }
+  .jhh-single-angebot .jhh-staff.jhh-staff--1 .jhh-staff-card{ width: 100%; max-width: 100%; }
+}
 
 /* ==========================================
    Utility: Notebook paper background
@@ -1237,7 +1388,8 @@ html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora{
    ========================================== */
 .jhh-team{ display:block; /* layout width/columns handled inline from PHP */ }
 /* Base card */
-.jhh-team-card{ position:relative; background:#2b2727; color:#fff; border-radius:16px; padding:26px 18px 18px; overflow:visible; }
+.jhh-team-card{ position:relative; background:#2b2727; color:#fff; border-radius:16px; padding:26px 18px 18px; overflow:visible; transition: z-index 0s linear 0.1s; }
+.jhh-team-card:hover { z-index: 20; transition-delay: 0s; }
 /* Dark mode card (explicit) */
 .jhh-team-card.bg-dark{ background:#2b2727; color:#fff; }
 /* Simple = dark card with slim rainbow line on top */
@@ -1248,8 +1400,65 @@ html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora{
   border-top-left-radius:16px; border-top-right-radius:16px;
 }
 .jhh-team-card.bg-simple .jhh-team-contact{ color:#b9aaff; }
-/* Pastel presets (light mode) */
-/* Palette requested: #f8edeb, #ece4db, #fcd5ce, #ffe5ec */
+
+/* Custom gradient background (colors set via inline styles) */
+.jhh-team-card.bg-custom { 
+  /* Colors set via inline style from PHP */
+  border-radius: 16px;
+}
+.jhh-team-card.bg-custom .jhh-team-contact { color: rgba(255,255,255,0.9); text-decoration: underline; }
+
+/* ==========================================
+   Modern Card Presets (replacing pastels)
+   ========================================== */
+
+/* Grainy gradient backgrounds (image-based) */
+.jhh-team-card.bg-grainy-1,
+.jhh-team-card.bg-grainy-2,
+.jhh-team-card.bg-grainy-3{
+  background-color: #141414;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #fff;
+}
+.jhh-team-card.bg-grainy-1{ background-image: url('pexels-codioful-7130481.jpg'); }
+.jhh-team-card.bg-grainy-2{ background-image: url('pexels-codioful-7130499.jpg'); }
+.jhh-team-card.bg-grainy-3{ background-image: url('pexels-codioful-7130555.jpg'); }
+.jhh-team-card.bg-grainy-1::after,
+.jhh-team-card.bg-grainy-2::after,
+.jhh-team-card.bg-grainy-3::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.50);
+  border-radius: 16px;
+  pointer-events:none;
+}
+.jhh-team-card.bg-grainy-1 > *,
+.jhh-team-card.bg-grainy-2 > *,
+.jhh-team-card.bg-grainy-3 > *{ position:relative; z-index:1; }
+.jhh-team-card.bg-grainy-1 .jhh-team-contact,
+.jhh-team-card.bg-grainy-2 .jhh-team-contact,
+.jhh-team-card.bg-grainy-3 .jhh-team-contact{ color:#b9aaff; }
+
+/* Muted modern - sophisticated dark gray with subtle warmth */
+.jhh-team-card.bg-muted {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  color: #dfe6e9;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.jhh-team-card.bg-muted .jhh-team-contact { color: #74b9ff; }
+
+/* Charcoal - rich dark with blue undertone */
+.jhh-team-card.bg-charcoal {
+  background: linear-gradient(160deg, #232526, #414345);
+  color: #f5f6fa;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.jhh-team-card.bg-charcoal .jhh-team-contact { color: #a29bfe; }
+
+/* Keep legacy pastel presets but with improved colors */
 .jhh-team-card.bg-blue{   background: linear-gradient(135deg, #f8edeb, #ece4db); color:#1a1a1a; }
 .jhh-team-card.bg-purple{ background: linear-gradient(135deg, #fcd5ce, #ffe5ec); color:#1a1a1a; }
 .jhh-team-card.bg-sunset{ background: linear-gradient(135deg, #f8edeb, #fcd5ce); color:#1a1a1a; }
@@ -1307,6 +1516,23 @@ html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora{
 /* Force 1-column grid on small screens */
 @media (max-width: 780px){
   .jhh-team-block .jhh-team{ grid-template-columns: 1fr !important; }
+  
+  /* Fix z-index stacking on mobile: ensure hover tooltips from upper cards appear above lower cards */
+  /* Set decreasing z-index for each card row to maintain proper stacking */
+  .jhh-team-card { z-index: 10; position: relative; }
+  .jhh-team-card:nth-child(1) { z-index: 19; }
+  .jhh-team-card:nth-child(2) { z-index: 18; }
+  .jhh-team-card:nth-child(3) { z-index: 17; }
+  .jhh-team-card:nth-child(4) { z-index: 16; }
+  .jhh-team-card:nth-child(5) { z-index: 15; }
+  .jhh-team-card:nth-child(6) { z-index: 14; }
+  .jhh-team-card:nth-child(7) { z-index: 13; }
+  .jhh-team-card:nth-child(8) { z-index: 12; }
+  .jhh-team-card:nth-child(9) { z-index: 11; }
+  .jhh-team-card:nth-child(n+10) { z-index: 10; }
+  
+  /* When hovering, ensure hovered card is always on top */
+  .jhh-team-card:hover { z-index: 100 !important; }
 }
 
 /* Dark color scheme: keep pastels; just tweak dark/none + contact color for contrast */
@@ -1319,6 +1545,12 @@ html[data-neve-theme="dark"] .jhh-staff-card.bg-aurora{
   .jhh-team-card.bg-sunset .jhh-team-contact,
   .jhh-team-card.bg-rainbow .jhh-team-contact,
   .jhh-team-card.bg-none .jhh-team-contact{ color:#93c5fd; }
+  
+  /* Modern card styles in dark mode */
+  .jhh-team-card.bg-glass{ background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
+  .jhh-team-card.bg-gradient-border{ background: #111; }
+  .jhh-team-card.bg-muted{ background: linear-gradient(145deg, #1a1d1e, #12171a); }
+  .jhh-team-card.bg-charcoal{ background: linear-gradient(160deg, #18191a, #2d2e2f); }
 }
 
 /* Neve theme dark mode attribute support */
@@ -1346,6 +1578,12 @@ html[data-neve-theme="dark"] .jhh-team-card.bg-blue{   background: linear-gradie
 html[data-neve-theme="dark"] .jhh-team-card.bg-purple{ background: linear-gradient(135deg, #3a2f2e, #2e292c); color:#f5f6f7; }
 html[data-neve-theme="dark"] .jhh-team-card.bg-sunset{ background: linear-gradient(135deg, #3b322f, #2f2a27); color:#f5f6f7; }
 html[data-neve-theme="dark"] .jhh-team-card.bg-rainbow{ background: linear-gradient(135deg, #38322e, #2c2725); color:#f5f6f7; }
+
+/* Dark-mode variants for modern card styles (Neve theme) */
+html[data-neve-theme="dark"] .jhh-team-card.bg-glass{ background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
+html[data-neve-theme="dark"] .jhh-team-card.bg-gradient-border{ background: #111; }
+html[data-neve-theme="dark"] .jhh-team-card.bg-muted{ background: linear-gradient(145deg, #1a1d1e, #12171a); }
+html[data-neve-theme="dark"] .jhh-team-card.bg-charcoal{ background: linear-gradient(160deg, #18191a, #2d2e2f); }
 
 /* Offer badge hover shadow */
 .jhh-offer-badge{ transition: box-shadow .2s ease, transform .2s ease, background-color .2s ease, color .2s ease; }
@@ -1567,6 +1805,9 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
   display: inline-block;
   z-index: 1; /* base layer for container */
 }
+.jhh-offer-tooltip-container:hover {
+  z-index: 1000;
+}
 
 .jhh-offer-tooltip {
   position: absolute;
@@ -1605,4 +1846,481 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
   opacity: 1;
   visibility: visible;
   background: #0e94a0;
+}
+
+/* ==========================================
+   ANGEBOTSEVENTS – Block Kacheln
+   ========================================== */
+.jhh-events-block { margin: 20px 0; }
+
+.jhh-event-card {
+  display: flex;
+  flex-direction: column;
+  background: #1e1b1b;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #e0e0e0;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.jhh-event-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff);
+  z-index: 1;
+}
+.jhh-event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.jhh-event-image {
+  position: relative;
+  overflow: hidden;
+  height: 160px;
+}
+.jhh-event-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.jhh-event-card:hover .jhh-event-thumb {
+  transform: scale(1.06);
+}
+.jhh-event-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.jhh-event-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Baloo 2', sans-serif;
+  line-height: 1.3;
+}
+.jhh-event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.jhh-event-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  color: #d0d0d0;
+  line-height: 1.3;
+}
+.jhh-event-date-badge { color: #a0d8ef; }
+.jhh-event-time-badge { color: #a0d8ef; }
+.jhh-event-price-badge { color: #b9aaff; }
+.jhh-event-part-badge { color: #f0c27f; }
+
+.jhh-event-excerpt {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #b0b0b0;
+  line-height: 1.45;
+}
+.jhh-event-angebot-link {
+  font-size: 0.82rem;
+  color: #b9aaff;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+/* Responsive Events Grid */
+@media (max-width: 900px) {
+  .jhh-events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 600px) {
+  .jhh-events-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ==========================================
+   ANGEBOTSEVENTS – Single Page 
+   ========================================== */
+.jhh-single-event .jhh-hero { position: relative; min-height: 380px; background-size: cover; background-position: center; }
+.jhh-single-event .jhh-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.6)); }
+.jhh-single-event .jhh-hero--no-image {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 280px;
+}
+.jhh-single-event .jhh-hero-overlay { position: relative; z-index: 1; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px 18px; text-align: center; min-height: 380px; }
+.jhh-single-event .jhh-hero--no-image .jhh-hero-overlay { min-height: 280px; }
+.jhh-single-event .jhh-hero-title { margin: 0; color: #fff; font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1.08; font-family: 'Baloo 2', sans-serif; text-shadow: 0 2px 20px rgba(0,0,0,.4); }
+
+/* Event Details Card */
+.jhh-event-details-card {
+  position: relative;
+  background: #1e1b1b;
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  margin: -40px auto 28px;
+  z-index: 2;
+  max-width: 900px;
+  overflow: hidden;
+}
+.jhh-event-details-topline {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff);
+}
+.jhh-event-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+.jhh-event-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.jhh-event-detail-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+.jhh-event-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.jhh-event-detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+.jhh-event-detail-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Linked Angebot inside details card – full background image card */
+.jhh-event-linked-angebot {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.jhh-event-angebot-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 28px 32px;
+  min-height: 100px;
+  max-width: 360px;
+  width: 100%;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #fff;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.jhh-event-angebot-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.45);
+  transition: filter 0.3s ease, transform 0.3s ease;
+  z-index: 0;
+}
+.jhh-event-angebot-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.jhh-event-angebot-card:hover::before {
+  filter: brightness(0.55);
+  transform: scale(1.05);
+}
+.jhh-event-angebot-thumb {
+  display: none; /* hidden – we use background-image now */
+}
+.jhh-event-angebot-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.jhh-event-angebot-arrow {
+  font-size: 1.3rem;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.25s ease;
+}
+.jhh-event-angebot-card:hover .jhh-event-angebot-arrow {
+  transform: translateX(4px);
+}
+
+/* ==========================================
+   CTA / Anmeldung Button
+   ========================================== */
+.jhh-event-cta-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 24px;
+}
+.jhh-event-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 36px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: 'Baloo 2', sans-serif;
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b6b 0%, #e84393 50%, #a855f7 100%);
+  border: none;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(232, 67, 147, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.jhh-event-cta-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 24px rgba(232, 67, 147, 0.5);
+  filter: brightness(1.1);
+  color: #fff;
+}
+.jhh-event-cta-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.jhh-event-cta-btn--disabled {
+  background: #555;
+  box-shadow: none;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.jhh-event-cta-icon {
+  font-size: 1.3rem;
+}
+
+/* ==========================================
+   ANGEBOTSEVENTS – In Single-Angebot View
+   ========================================== */
+.jhh-events-section {
+  margin: 32px 0 20px;
+}
+.jhh-events-section h3 {
+  margin: 0 0 14px;
+  font-size: 1.4rem;
+  font-family: 'Baloo 2', sans-serif;
+  color: #fff;
+}
+.jhh-events-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.jhh-event-inline-card {
+  display: flex;
+  flex-direction: column;
+  background: #1e1b1b;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #e0e0e0;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.jhh-event-inline-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff);
+  z-index: 1;
+}
+.jhh-event-inline-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+.jhh-event-inline-image {
+  height: 120px;
+  overflow: hidden;
+}
+.jhh-event-inline-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.jhh-event-inline-card:hover .jhh-event-inline-thumb {
+  transform: scale(1.05);
+}
+.jhh-event-inline-body {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  align-items: flex-start;
+}
+.jhh-event-inline-date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 6px 8px;
+  background: rgba(185, 170, 255, 0.12);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.jhh-event-inline-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-family: 'Baloo 2', sans-serif;
+}
+.jhh-event-inline-month {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b9aaff;
+}
+.jhh-event-inline-info {
+  flex: 1;
+  min-width: 0;
+}
+.jhh-event-inline-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Baloo 2', sans-serif;
+  line-height: 1.3;
+}
+.jhh-event-inline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #a0a0a0;
+  font-weight: 500;
+}
+.jhh-event-inline-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Related events in single event view */
+.jhh-related-events {
+  margin: 32px 0 20px;
+}
+.jhh-related-events h3 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+  font-family: 'Baloo 2', sans-serif;
+}
+.jhh-related-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+/* Responsive events in angebot */
+@media (max-width: 600px) {
+  .jhh-events-inline-grid { grid-template-columns: 1fr; }
+  .jhh-event-details-grid { grid-template-columns: 1fr 1fr; }
+  .jhh-event-details-card { margin: -24px 8px 20px; padding: 22px 16px 18px; }
+  .jhh-single-event .jhh-hero-overlay { min-height: 280px; }
+}
+@media (max-width: 400px) {
+  .jhh-event-details-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================
+   ANGEBOTSEVENTS – Ausgebucht Banner
+   ========================================== */
+.jhh-event-sold-out-banner {
+  position: absolute;
+  top: 18px;
+  right: -32px;
+  z-index: 10;
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 40px;
+  transform: rotate(35deg);
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.jhh-event--sold-out {
+  opacity: 0.85;
+}
+.jhh-event--sold-out .jhh-event-thumb,
+.jhh-event--sold-out .jhh-event-inline-thumb {
+  filter: grayscale(0.5);
+}
+
+/* Past event styling */
+.jhh-event--past {
+  opacity: 0.6;
+}
+
+/* ==========================================
+   ANGEBOTSEVENTS – Hover-Beschreibung
+   ========================================== */
+.jhh-event-inline-image {
+  position: relative;
+}
+.jhh-event-hover-desc {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.jhh-event-hover-desc p {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+}
+.jhh-event-inline-card:hover .jhh-event-hover-desc {
+  opacity: 1;
 }
