@@ -212,8 +212,8 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
                     var $input = $(this);
                     if ($input.data('wpWpColorPicker')) return; // already initialized
                     $input.wpColorPicker({
-                        change: function(){ okjaUpdatePreview(); },
-                        clear: function(){ okjaUpdatePreview(); }
+                        change: function(){ okjaUpdatePreview(); okjaUpdateEventPreview(); },
+                        clear: function(){ okjaUpdatePreview(); okjaUpdateEventPreview(); }
                     });
                 });
             }
@@ -261,6 +261,48 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
             }
 
             okjaUpdatePreview();
+
+            // ---- Event Card Preview ----
+            $('input[name=okja_event_card_style]').on('change', function(){ okjaUpdateEventPreview(); });
+            $('input[name=okja_event_card_topline]').on('change', function(){ okjaUpdateEventPreview(); });
+
+            function okjaUpdateEventPreview() {
+                setTimeout(function() {
+                    var bg = $('input[name=okja_event_card_bg]').val() || '#1e1b1b';
+                    var text = $('input[name=okja_event_card_text]').val() || '#ffffff';
+                    var accent = $('input[name=okja_event_card_accent]').val() || '#b9aaff';
+                    var style = $('input[name=okja_event_card_style]:checked').val() || 'simple';
+                    var topline = $('input[name=okja_event_card_topline]:checked').length > 0;
+
+                    var \$p = $('#okja-event-card-preview');
+                    if (!\$p.length) return;
+
+                    // Topline visibility
+                    \$p.find('.okja-event-preview-topline').css('display', topline ? 'block' : 'none');
+                    \$p.find('.okja-event-preview-topline').css('background', 'linear-gradient(90deg, ' + accent + ', #ee0979, #8a2be2, #4169e1, #00c6ff)');
+
+                    // Style-based backgrounds
+                    if (style === 'notebook') {
+                        \$p.css({ backgroundImage: 'none', backgroundColor: '#f5f1eb', color: '#333' });
+                        \$p.find('.okja-event-preview-label').css('color', '#888');
+                    } else if (style === 'aurora') {
+                        \$p.css({ backgroundImage: 'none', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)', color: '#fff' });
+                        \$p.find('.okja-event-preview-label').css('color', 'rgba(255,255,255,0.6)');
+                    } else if (grainyMap[style]) {
+                        \$p.css({ backgroundImage: 'url(' + grainyMap[style] + ')', backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundColor: '#141414', color: '#fff' });
+                        \$p.find('.okja-event-preview-label').css('color', 'rgba(255,255,255,0.6)');
+                    } else if (style === 'custom') {
+                        \$p.css({ backgroundImage: 'none', backgroundColor: bg, color: text });
+                        \$p.find('.okja-event-preview-label').css('color', accent);
+                    } else {
+                        // simple
+                        \$p.css({ backgroundImage: 'none', backgroundColor: '#1e1b1b', color: '#fff' });
+                        \$p.find('.okja-event-preview-label').css('color', '#888');
+                    }
+                }, 50);
+            }
+
+            okjaUpdateEventPreview();
         });"
     );
 } );
@@ -311,6 +353,37 @@ add_action( 'admin_init', function() {
         'sanitize_callback' => 'absint'
     ] );
 
+    // Event card style settings
+    register_setting( 'okja_settings_group', 'okja_event_card_style', [
+        'type' => 'string',
+        'default' => 'simple',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ 'simple', 'notebook', 'aurora', 'grainy-1', 'grainy-2', 'grainy-3', 'custom' ], true ) ? $val : 'simple';
+        }
+    ] );
+    register_setting( 'okja_settings_group', 'okja_event_card_bg', [
+        'type' => 'string',
+        'default' => '#1e1b1b',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_event_card_text', [
+        'type' => 'string',
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_event_card_accent', [
+        'type' => 'string',
+        'default' => '#b9aaff',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_event_card_topline', [
+        'type' => 'string',
+        'default' => '1',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ '0', '1' ], true ) ? $val : '1';
+        }
+    ] );
+
     // Hero animation settings
     register_setting( 'okja_settings_group', 'okja_hero_animation', [
         'type' => 'string',
@@ -332,6 +405,25 @@ add_action( 'admin_init', function() {
             $allowed = [ 'none', 'glow', 'scale', 'color-shift', 'underline', 'shake' ];
             return in_array( $val, $allowed, true ) ? $val : 'none';
         }
+    ] );
+
+    // Theme compatibility settings
+    register_setting( 'okja_settings_group', 'okja_color_mode', [
+        'type' => 'string',
+        'default' => 'auto',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ 'auto', 'dark', 'light' ], true ) ? $val : 'auto';
+        }
+    ] );
+    register_setting( 'okja_settings_group', 'okja_dark_selector', [
+        'type' => 'string',
+        'default' => 'html[data-neve-theme="dark"]',
+        'sanitize_callback' => 'sanitize_text_field'
+    ] );
+    register_setting( 'okja_settings_group', 'okja_light_selector', [
+        'type' => 'string',
+        'default' => 'html[data-neve-theme="light"]',
+        'sanitize_callback' => 'sanitize_text_field'
     ] );
     
     // Section: Style
@@ -404,6 +496,48 @@ add_action( 'admin_init', function() {
         'okja_events_section'
     );
 
+    // Section: Event Card Style
+    add_settings_section(
+        'okja_event_card_section',
+        __( 'Event-Kachel (Single-Ansicht)', 'jhh-posts-block' ),
+        function() {
+            echo '<p>' . esc_html__( 'Passe das Aussehen der Event-Details-Kachel auf der Einzelseite an.', 'jhh-posts-block' ) . '</p>';
+        },
+        'okja-angebote-settings'
+    );
+
+    add_settings_field(
+        'okja_event_card_style',
+        __( 'Kachel-Style', 'jhh-posts-block' ),
+        'okja_render_event_card_style_field',
+        'okja-angebote-settings',
+        'okja_event_card_section'
+    );
+
+    add_settings_field(
+        'okja_event_card_topline_field',
+        __( 'Gradient-Linie', 'jhh-posts-block' ),
+        'okja_render_event_card_topline_field',
+        'okja-angebote-settings',
+        'okja_event_card_section'
+    );
+
+    add_settings_field(
+        'okja_event_card_colors',
+        __( 'Kachel-Farben', 'jhh-posts-block' ),
+        'okja_render_event_card_color_fields',
+        'okja-angebote-settings',
+        'okja_event_card_section'
+    );
+
+    add_settings_field(
+        'okja_event_card_preview',
+        __( 'Vorschau', 'jhh-posts-block' ),
+        'okja_render_event_card_preview_field',
+        'okja-angebote-settings',
+        'okja_event_card_section'
+    );
+
     // Section: Hero Animations
     add_settings_section(
         'okja_hero_section',
@@ -429,6 +563,40 @@ add_action( 'admin_init', function() {
         'okja-angebote-settings',
         'okja_hero_section'
     );
+
+    // Section: Theme Compatibility
+    add_settings_section(
+        'okja_theme_compat_section',
+        __( 'Theme-Kompatibilität', 'jhh-posts-block' ),
+        function() {
+            echo '<p>' . esc_html__( 'Konfiguriere wie das Plugin mit dem Dark/Light Mode deines Themes zusammenarbeitet.', 'jhh-posts-block' ) . '</p>';
+        },
+        'okja-angebote-settings'
+    );
+
+    add_settings_field(
+        'okja_color_mode',
+        __( 'Farbmodus', 'jhh-posts-block' ),
+        'okja_render_color_mode_field',
+        'okja-angebote-settings',
+        'okja_theme_compat_section'
+    );
+
+    add_settings_field(
+        'okja_dark_selector',
+        __( 'Dark Mode Selektor', 'jhh-posts-block' ),
+        'okja_render_dark_selector_field',
+        'okja-angebote-settings',
+        'okja_theme_compat_section'
+    );
+
+    add_settings_field(
+        'okja_light_selector',
+        __( 'Light Mode Selektor', 'jhh-posts-block' ),
+        'okja_render_light_selector_field',
+        'okja-angebote-settings',
+        'okja_theme_compat_section'
+    );
 } );
 
 function okja_render_staff_style_field() {
@@ -437,7 +605,7 @@ function okja_render_staff_style_field() {
     <fieldset>
         <label style="display:block;margin-bottom:8px;">
             <input type="radio" name="okja_default_staff_style" value="simple" <?php checked( $style, 'simple' ); ?>>
-            <?php esc_html_e( 'Schlicht (dunkel, mit Farblinie)', 'jhh-posts-block' ); ?>
+            <?php esc_html_e( 'Schlicht (themeabhängig: dunkel/hell, mit Farblinie)', 'jhh-posts-block' ); ?>
         </label>
         <label style="display:block;margin-bottom:8px;">
             <input type="radio" name="okja_default_staff_style" value="notebook" <?php checked( $style, 'notebook' ); ?>>
@@ -464,7 +632,7 @@ function okja_render_staff_style_field() {
             <?php esc_html_e( 'Benutzerdefiniert (eigene Farben unten)', 'jhh-posts-block' ); ?>
         </label>
     </fieldset>
-    <p class="description"><?php esc_html_e( 'Dieser Style wird für alle Angebote verwendet, außer wenn ein Angebot einen eigenen Style definiert hat.', 'jhh-posts-block' ); ?></p>
+    <p class="description"><?php esc_html_e( 'Dieser Style wird für alle Angebote verwendet, außer wenn ein Angebot einen eigenen Style definiert hat. Bei „Schlicht“ wechseln Farben automatisch je nach Theme-Modus (Dark/Light).', 'jhh-posts-block' ); ?></p>
     <?php
 }
 
@@ -588,6 +756,158 @@ function okja_render_events_range_field() {
     <?php
 }
 
+function okja_render_event_card_style_field() {
+    $style = get_option( 'okja_event_card_style', 'simple' );
+    ?>
+    <fieldset>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_event_card_style" value="simple" <?php checked( $style, 'simple' ); ?>>
+            <?php esc_html_e( 'Schlicht (themeabhängig: dunkel/hell, mit Farblinie)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_event_card_style" value="notebook" <?php checked( $style, 'notebook' ); ?>>
+            <?php esc_html_e( 'Papier (Notizbuch)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_event_card_style" value="aurora" <?php checked( $style, 'aurora' ); ?>>
+            <?php esc_html_e( 'Pastell-Gradient', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_event_card_style" value="grainy-1" <?php checked( $style, 'grainy-1' ); ?>>
+            <?php esc_html_e( 'Grainy Gradient (Bild 1)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_event_card_style" value="grainy-2" <?php checked( $style, 'grainy-2' ); ?>>
+            <?php esc_html_e( 'Grainy Gradient (Bild 2)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;margin-bottom:8px;">
+            <input type="radio" name="okja_event_card_style" value="grainy-3" <?php checked( $style, 'grainy-3' ); ?>>
+            <?php esc_html_e( 'Grainy Gradient (Bild 3)', 'jhh-posts-block' ); ?>
+        </label>
+        <label style="display:block;">
+            <input type="radio" name="okja_event_card_style" value="custom" <?php checked( $style, 'custom' ); ?>>
+            <?php esc_html_e( 'Benutzerdefiniert (eigene Farben unten)', 'jhh-posts-block' ); ?>
+        </label>
+    </fieldset>
+    <p class="description"><?php esc_html_e( 'Bei „Schlicht“ wechseln Farben automatisch je nach Theme-Modus (Dark/Light).', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_event_card_topline_field() {
+    $show = get_option( 'okja_event_card_topline', '1' );
+    ?>
+    <label>
+        <input type="hidden" name="okja_event_card_topline" value="0">
+        <input type="checkbox" name="okja_event_card_topline" value="1" <?php checked( $show, '1' ); ?>>
+        <?php esc_html_e( 'Gradient-Linie oben auf der Kachel anzeigen', 'jhh-posts-block' ); ?>
+    </label>
+    <p class="description"><?php esc_html_e( 'Zeigt eine farbige Gradient-Linie am oberen Rand der Event-Kachel an.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_event_card_color_fields() {
+    $bg     = get_option( 'okja_event_card_bg', '#1e1b1b' );
+    $text   = get_option( 'okja_event_card_text', '#ffffff' );
+    $accent = get_option( 'okja_event_card_accent', '#b9aaff' );
+    ?>
+    <table class="form-table" style="margin:0;">
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;width:150px;"><?php esc_html_e( 'Hintergrund', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="text" name="okja_event_card_bg" value="<?php echo esc_attr( $bg ); ?>" class="okja-color-picker" data-default-color="#1e1b1b">
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;"><?php esc_html_e( 'Text', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="text" name="okja_event_card_text" value="<?php echo esc_attr( $text ); ?>" class="okja-color-picker" data-default-color="#ffffff">
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" style="padding:10px 10px 10px 0;"><?php esc_html_e( 'Akzent (Labels, Linie)', 'jhh-posts-block' ); ?></th>
+            <td style="padding:10px 0;">
+                <input type="text" name="okja_event_card_accent" value="<?php echo esc_attr( $accent ); ?>" class="okja-color-picker" data-default-color="#b9aaff">
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+
+function okja_render_event_card_preview_field() {
+    $bg     = get_option( 'okja_event_card_bg', '#1e1b1b' );
+    $text   = get_option( 'okja_event_card_text', '#ffffff' );
+    $accent = get_option( 'okja_event_card_accent', '#b9aaff' );
+    $style  = get_option( 'okja_event_card_style', 'simple' );
+    $topline = get_option( 'okja_event_card_topline', '1' );
+    $grainy_urls = [
+        'grainy-1' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130481.jpg' ),
+        'grainy-2' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130499.jpg' ),
+        'grainy-3' => esc_url( JHH_PB_URL . 'assets/pexels-codioful-7130555.jpg' ),
+    ];
+    $preview_bg_css = 'background-color: ' . esc_attr( $bg ) . ';';
+    if ( $style === 'notebook' ) {
+        $preview_bg_css = 'background-color: #f5f1eb;';
+    } elseif ( $style === 'aurora' ) {
+        $preview_bg_css = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);';
+    } elseif ( isset( $grainy_urls[ $style ] ) ) {
+        $preview_bg_css = 'background-color:#141414;background-image:url(' . $grainy_urls[ $style ] . ');background-position:center;background-size:cover;background-repeat:no-repeat;';
+    }
+    $topline_display = ( $topline === '1' ) ? 'block' : 'none';
+    $text_preview = ( $style === 'notebook' ) ? '#333' : esc_attr( $text );
+    $label_color  = ( $style === 'notebook' ) ? '#888' : 'rgba(255,255,255,0.5)';
+    ?>
+    <div id="okja-event-card-preview" style="
+        position: relative;
+        <?php echo $preview_bg_css; ?>
+        color: <?php echo $text_preview; ?>;
+        border-radius: 16px;
+        padding: 28px 24px 24px;
+        max-width: 500px;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    ">
+        <div class="okja-event-preview-topline" style="
+            position: absolute;
+            left: 0; right: 0; top: 0;
+            height: 5px;
+            background: linear-gradient(90deg, <?php echo esc_attr( $accent ); ?>, #ee0979, #8a2be2, #4169e1, #00c6ff);
+            display: <?php echo $topline_display; ?>;
+        "></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+                <span style="font-size:1.4rem;">📅</span>
+                <div>
+                    <div class="okja-event-preview-label" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:<?php echo $label_color; ?>;">Datum</div>
+                    <div style="font-weight:700;font-size:0.95rem;">So, 22. Feb 2026</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+                <span style="font-size:1.4rem;">🕐</span>
+                <div>
+                    <div class="okja-event-preview-label" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:<?php echo $label_color; ?>;">Uhrzeit</div>
+                    <div style="font-weight:700;font-size:0.95rem;">14:00 – 18:00 Uhr</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+                <span style="font-size:1.4rem;">💰</span>
+                <div>
+                    <div class="okja-event-preview-label" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:<?php echo $label_color; ?>;">Preis</div>
+                    <div style="font-weight:700;font-size:0.95rem;">3 €</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+                <span style="font-size:1.4rem;">👥</span>
+                <div>
+                    <div class="okja-event-preview-label" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:<?php echo $label_color; ?>;">Teilnehmer</div>
+                    <div style="font-weight:700;font-size:0.95rem;">max. 10 Plätze</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p class="description" style="margin-top: 12px;"><?php esc_html_e( 'Live-Vorschau der Event-Kachel. Änderungen werden sofort angezeigt.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
 function okja_render_hero_animation_field() {
     $animation = get_option( 'okja_hero_animation', 'none' );
     $options = [
@@ -653,6 +973,43 @@ function okja_render_hero_hover_field() {
         <?php endforeach; ?>
     </select>
     <p class="description"><?php esc_html_e( 'Wird beim Hover über den Titel aktiviert.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_color_mode_field() {
+    $mode = get_option( 'okja_color_mode', 'auto' );
+    ?>
+    <select name="okja_color_mode">
+        <option value="auto" <?php selected( $mode, 'auto' ); ?>><?php esc_html_e( 'Automatisch (Theme-Selektor)', 'jhh-posts-block' ); ?></option>
+        <option value="dark" <?php selected( $mode, 'dark' ); ?>><?php esc_html_e( 'Immer Dark', 'jhh-posts-block' ); ?></option>
+        <option value="light" <?php selected( $mode, 'light' ); ?>><?php esc_html_e( 'Immer Light', 'jhh-posts-block' ); ?></option>
+    </select>
+    <p class="description"><?php esc_html_e( 'Bei "Automatisch" wird der Dark/Light Mode anhand der Theme-Selektoren erkannt.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_dark_selector_field() {
+    $sel = get_option( 'okja_dark_selector', 'html[data-neve-theme="dark"]' );
+    ?>
+    <input type="text" name="okja_dark_selector" value="<?php echo esc_attr( $sel ); ?>" class="regular-text" style="min-width:400px;">
+    <p class="description">
+        <?php esc_html_e( 'CSS-Selektor für Dark Mode. Beispiele:', 'jhh-posts-block' ); ?><br>
+        <code>html[data-neve-theme="dark"]</code> (Neve Theme)<br>
+        <code>body.dark-mode</code> (Andere Themes)<br>
+        <code>html.dark</code> (Tailwind-basierte Themes)
+    </p>
+    <?php
+}
+
+function okja_render_light_selector_field() {
+    $sel = get_option( 'okja_light_selector', 'html[data-neve-theme="light"]' );
+    ?>
+    <input type="text" name="okja_light_selector" value="<?php echo esc_attr( $sel ); ?>" class="regular-text" style="min-width:400px;">
+    <p class="description">
+        <?php esc_html_e( 'CSS-Selektor für Light Mode (wird genutzt um Dark bei auto auszuschließen). Beispiele:', 'jhh-posts-block' ); ?><br>
+        <code>html[data-neve-theme="light"]</code> (Neve Theme)<br>
+        <code>body.light-mode</code> (Andere Themes)
+    </p>
     <?php
 }
 
@@ -796,7 +1153,7 @@ function jhh_render_staff_style_metabox( $post ){
     
     echo '<p>' . esc_html__( 'Darstellung der Mitarbeiter-Karte in der Single-Ansicht wählen.', 'jhh-posts-block' ) . '</p>';
     echo '<label style="display:block;margin-bottom:6px;background:#f0f0f1;padding:8px;border-radius:4px;"><input type="radio" name="jhh_staff_card_style" value="global"' . checked( $use_global, true, false ) . '> ' . sprintf( esc_html__( 'Global (%s) – Einstellung unter Einstellungen > OKJA Angebote', 'jhh-posts-block' ), esc_html( $global_default ) ) . '</label>';
-    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="simple"' . checked( $post_style, 'simple', false ) . '> ' . esc_html__( 'Schlicht (dunkel, mit Farblinie)', 'jhh-posts-block' ) . '</label>';
+    echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="simple"' . checked( $post_style, 'simple', false ) . '> ' . esc_html__( 'Schlicht (themeabhängig: dunkel/hell, mit Farblinie)', 'jhh-posts-block' ) . '</label>';
     echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="notebook"' . checked( $post_style, 'notebook', false ) . '> ' . esc_html__( 'Papier (Notizbuch) – mit aufgepinntem Foto', 'jhh-posts-block' ) . '</label>';
     echo '<label style="display:block;margin-bottom:6px;"><input type="radio" name="jhh_staff_card_style" value="aurora"' . checked( $post_style, 'aurora', false ) . '> ' . esc_html__( 'Pastell‑Gradient – ohne Pin', 'jhh-posts-block' ) . '</label>';
     echo '<label style="display:block;"><input type="radio" name="jhh_staff_card_style" value="custom"' . checked( $post_style, 'custom', false ) . '> ' . esc_html__( 'Benutzerdefiniert (Farben aus Einstellungen)', 'jhh-posts-block' ) . '</label>';
@@ -1324,6 +1681,8 @@ if ( ! function_exists( 'jhh_output_paed_dynamic_css' ) ) {
         $css .= "}\n";
 
         // 2) Optional: Direkter Style für Badges (falls irgendwo kein Child-CSS greift)
+        $dark_sel = wp_strip_all_tags( okja_get_dark_selector() );
+
         foreach ( $terms as $term ) {
             $slug = sanitize_title( $term->slug );
 
@@ -1342,14 +1701,13 @@ if ( ! function_exists( 'jhh_output_paed_dynamic_css' ) ) {
 
             // Dark-Mode: Text weiß, BG etwas dunkler
             $dark_selectors = array_map(
-    fn($sel) => ":root[data-neve-theme=\"dark\"] {$sel}",
-    $selectors
-);
-$css .= implode(',', $dark_selectors) . '{';
-$css .= "color:#fff;";
-$css .= "background-color: color-mix(in srgb, var(--jhh-term-{$slug}-bg, {$bg_fallback_default}) 75%, black 25%);";
-$css .= "}\n";
-
+                fn($sel) => "{$dark_sel} {$sel}",
+                $selectors
+            );
+            $css .= implode(',', $dark_selectors) . '{';
+            $css .= "color:#fff;";
+            $css .= "background-color: color-mix(in srgb, var(--jhh-term-{$slug}-bg, {$bg_fallback_default}) 75%, black 25%);";
+            $css .= "}\n";
 
             // Fallback für Browser ohne color-mix
             $base_for_fallback = get_term_meta( $term->term_id, 'badge_bg_color', true );
@@ -1357,7 +1715,7 @@ $css .= "}\n";
             $darkened = jhh_hex_darken( $base_for_fallback, 0.25 );
 
             $css .= "@supports not (background-color: color-mix(in srgb, white, black)) {";
-            $css .= ":root[data-neve-theme=\"dark\"] {$selector_list}{background-color: {$darkened};}";
+            $css .= "{$dark_sel} {$selector_list}{background-color: {$darkened};}";
             $css .= "}\n";
         }
 
@@ -1367,6 +1725,156 @@ $css .= "}\n";
 
     // Früh genug anhängen, damit Variablen vor Theme/Child-CSS vorhanden sind
     add_action( 'wp_head', 'jhh_output_paed_dynamic_css', 20 );
+}
+
+/**
+ * Helper: Get the configured dark/light CSS selectors.
+ */
+if ( ! function_exists( 'okja_get_dark_selector' ) ) {
+    function okja_get_dark_selector() {
+        return get_option( 'okja_dark_selector', 'html[data-neve-theme="dark"]' );
+    }
+}
+if ( ! function_exists( 'okja_get_light_selector' ) ) {
+    function okja_get_light_selector() {
+        return get_option( 'okja_light_selector', 'html[data-neve-theme="light"]' );
+    }
+}
+
+/**
+ * Output dynamic theme-aware CSS for event cards, inline event tiles,
+ * back-link, staff cards, etc. using the configured dark/light selectors.
+ * This replaces the need for hardcoded selectors in static CSS.
+ */
+if ( ! function_exists( 'okja_output_theme_dynamic_css' ) ) {
+    function okja_output_theme_dynamic_css() {
+        $mode  = get_option( 'okja_color_mode', 'auto' );
+        $dark  = wp_strip_all_tags( okja_get_dark_selector() );
+        $light = wp_strip_all_tags( okja_get_light_selector() );
+
+        $css = "<style id=\"okja-theme-dynamic-css\">\n";
+
+        // -------------------------------------------------------
+        // DARK MODE styles
+        // We wrap in the configured dark selector (or :root for forced dark)
+        // -------------------------------------------------------
+        if ( $mode === 'dark' ) {
+            $d = ':root';
+        } elseif ( $mode === 'auto' ) {
+            $d = $dark;
+        } else {
+            $d = ''; // light mode forced = no dark rules
+        }
+
+        if ( $d ) {
+            // Event block cards (Angebotsevent card tiles)
+            $css .= "{$d} .jhh-event-card { background: #1e1b1b; color: #e0e0e0; }\n";
+            $css .= "{$d} .jhh-event-title { color: #fff; }\n";
+            $css .= "{$d} .jhh-event-badge { background: rgba(255,255,255,0.08); color: #d0d0d0; }\n";
+
+            // Event inline cards (in Angebot single page)
+            $css .= "{$d} .jhh-events-section h3 { color: #fff; }\n";
+            $css .= "{$d} .jhh-event-inline-card { background: #1e1b1b; color: #e0e0e0; }\n";
+            $css .= "{$d} .jhh-event-inline-title { color: #fff; }\n";
+            $css .= "{$d} .jhh-event-inline-day { color: #fff; }\n";
+            $css .= "{$d} .jhh-event-inline-month { color: #b9aaff; }\n";
+            $css .= "{$d} .jhh-event-inline-meta { color: #a0a0a0; }\n";
+            $css .= "{$d} .jhh-event-inline-date-block { background: rgba(185, 170, 255, 0.12); }\n";
+
+            // Event details card (single event page)
+            $css .= "{$d} .jhh-event-details-card { background-color: var(--jhh-event-card-bg, #1e1b1b); color: var(--jhh-event-card-text, #fff); }\n";
+            $css .= "{$d} .jhh-event-detail-value { color: var(--jhh-event-card-text, #fff); }\n";
+            $css .= "{$d} .jhh-event-detail-label { color: var(--jhh-event-card-label, #888); }\n";
+
+            // Staff/Team simple cards (force dark variant in dark mode)
+            $css .= "{$d} .jhh-staff-card.bg-simple, {$d} .jhh-team-card.bg-simple { background: #1f1b1b; color: #f5f6f7; }\n";
+            $css .= "{$d} .jhh-staff-card.bg-simple .jhh-staff-contact, {$d} .jhh-team-card.bg-simple .jhh-team-contact { color: #93c5fd; }\n";
+
+            // Related events
+            $css .= "{$d} .jhh-related-events h3 { color: #fff; }\n";
+
+            // Back link
+            $css .= "{$d} .jhh-back-link { background: #2b2727; color: #fff; }\n";
+
+            // Existing staff/team card dark rules (replicate with dynamic selector)
+            $css .= "{$d} .jhh-team-card.bg-dark, {$d} .jhh-team-card.bg-simple { background:#1f1b1b; color:#f5f6f7; }\n";
+            $css .= "{$d} .jhh-team-card.bg-none { background:rgba(255,255,255,0.03); color:#f6f6f6; border-color:rgba(255,255,255,0.12); }\n";
+            $css .= "{$d} .jhh-team-card, {$d} .jhh-team-card .jhh-team-meta, {$d} .jhh-team-card .jhh-team-name, {$d} .jhh-team-card .jhh-team-role, {$d} .jhh-team-card .jhh-team-bio, {$d} .jhh-team-card p, {$d} .jhh-team-card a { color:#f5f6f7 !important; }\n";
+            $css .= "{$d} .jhh-team-card .jhh-team-role, {$d} .jhh-team-card .jhh-team-bio { opacity:1; }\n";
+            $css .= "{$d} .jhh-team-card.bg-blue .jhh-team-contact, {$d} .jhh-team-card.bg-purple .jhh-team-contact, {$d} .jhh-team-card.bg-sunset .jhh-team-contact, {$d} .jhh-team-card.bg-rainbow .jhh-team-contact, {$d} .jhh-team-card.bg-none .jhh-team-contact { color:#93c5fd; }\n";
+            $css .= "{$d} .jhh-team-card.bg-blue { background:linear-gradient(135deg,#3a3331,#2f2b28); color:#f5f6f7; }\n";
+            $css .= "{$d} .jhh-team-card.bg-purple { background:linear-gradient(135deg,#3a2f2e,#2e292c); color:#f5f6f7; }\n";
+            $css .= "{$d} .jhh-team-card.bg-sunset { background:linear-gradient(135deg,#3b322f,#2f2a27); color:#f5f6f7; }\n";
+            $css .= "{$d} .jhh-team-card.bg-rainbow { background:linear-gradient(135deg,#38322e,#2c2725); color:#f5f6f7; }\n";
+            $css .= "{$d} .jhh-team-card.bg-glass { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); }\n";
+            $css .= "{$d} .jhh-team-card.bg-gradient-border { background:#111; }\n";
+            $css .= "{$d} .jhh-team-card.bg-muted { background:linear-gradient(145deg,#1a1d1e,#12171a); }\n";
+            $css .= "{$d} .jhh-team-card.bg-charcoal { background:linear-gradient(160deg,#18191a,#2d2e2f); }\n";
+            $css .= "{$d} .jhh-team-card.bg-aurora { background:radial-gradient(circle,rgba(255,255,255,0.20),rgba(255,255,255,0.05)); }\n";
+            $css .= "{$d} .jhh-team-card.bg-aurora::before { filter:blur(42px); opacity:.38; }\n";
+            $css .= "{$d} .jhh-team-card.bg-aurora::after { filter:blur(36px); opacity:.28; }\n";
+
+            // Staff card (single angebot) dark
+            $css .= "{$d} .jhh-staff-card.bg-aurora { background:radial-gradient(circle,rgba(255,255,255,0.20),rgba(255,255,255,0.05)); }\n";
+        }
+
+        // -------------------------------------------------------
+        // LIGHT MODE styles
+        // -------------------------------------------------------
+        if ( $mode === 'light' ) {
+            $l = ':root';
+        } elseif ( $mode === 'auto' ) {
+            $l = $light;
+        } else {
+            $l = ''; // dark mode forced = no light rules
+        }
+
+        if ( $l ) {
+            // Event block cards – light
+            $css .= "{$l} .jhh-event-card { background: #f5f1eb; color: #333; }\n";
+            $css .= "{$l} .jhh-event-card::before { background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff); }\n";
+            $css .= "{$l} .jhh-event-title { color: #1a1a1a; }\n";
+            $css .= "{$l} .jhh-event-badge { background: rgba(0,0,0,0.06); color: #555; }\n";
+            $css .= "{$l} .jhh-event-body { color: #444; }\n";
+
+            // Event inline cards – light
+            $css .= "{$l} .jhh-events-section h3 { color: #1a1a1a; }\n";
+            $css .= "{$l} .jhh-event-inline-card { background: #f5f1eb; color: #333; }\n";
+            $css .= "{$l} .jhh-event-inline-card::before { background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff); }\n";
+            $css .= "{$l} .jhh-event-inline-title { color: #1a1a1a; }\n";
+            $css .= "{$l} .jhh-event-inline-day { color: #1a1a1a; }\n";
+            $css .= "{$l} .jhh-event-inline-month { color: #7c3aed; }\n";
+            $css .= "{$l} .jhh-event-inline-meta { color: #666; }\n";
+            $css .= "{$l} .jhh-event-inline-date-block { background: rgba(124, 58, 237, 0.08); }\n";
+
+            // Event details card – light
+            $css .= "{$l} .jhh-event-details-card { background-color: #f5f1eb; color: #333; }\n";
+            $css .= "{$l} .jhh-event-detail-value { color: #1a1a1a; }\n";
+            $css .= "{$l} .jhh-event-detail-label { color: #888; }\n";
+            $css .= "{$l} .jhh-event-linked-angebot { border-top-color: rgba(0,0,0,0.08); }\n";
+
+            // Staff/Team simple cards – light
+            $css .= "{$l} .jhh-staff-card.bg-simple, {$l} .jhh-team-card.bg-simple { background: #f5f1eb; color: #1a1a1a; }\n";
+            $css .= "{$l} .jhh-staff-card.bg-simple .jhh-staff-contact, {$l} .jhh-team-card.bg-simple .jhh-team-contact { color: #7c3aed; }\n";
+            $css .= "{$l} .jhh-staff-card.bg-simple .jhh-staff-name, {$l} .jhh-staff-card.bg-simple .jhh-staff-role, {$l} .jhh-staff-card.bg-simple .jhh-staff-bio, {$l} .jhh-staff-card.bg-simple a, {$l} .jhh-team-card.bg-simple .jhh-team-name, {$l} .jhh-team-card.bg-simple .jhh-team-role, {$l} .jhh-team-card.bg-simple .jhh-team-bio, {$l} .jhh-team-card.bg-simple a { color: #1a1a1a !important; }\n";
+
+            // Related offers (single angebot) – light
+            $css .= "{$l} .jhh-single-angebot .jhh-related-item { background: #f5f1eb; border: 1px solid rgba(0,0,0,0.08); }\n";
+            $css .= "{$l} .jhh-single-angebot .jhh-related-title { color: #1a1a1a !important; }\n";
+            $css .= "{$l} .jhh-single-angebot .jhh-related-hover { background: linear-gradient(180deg, rgba(245,241,235,0.96) 0%, rgba(236,229,220,0.98) 100%); }\n";
+            $css .= "{$l} .jhh-single-angebot .jhh-related-staff, {$l} .jhh-single-angebot .jhh-related-schedule { color: #333; }\n";
+
+            // Related events – light
+            $css .= "{$l} .jhh-related-events h3 { color: #1a1a1a; }\n";
+
+            // Back link – light
+            $css .= "{$l} .jhh-back-link { background: #f0ebe4; color: #333; }\n";
+        }
+
+        $css .= "</style>\n";
+        echo $css;
+    }
+    add_action( 'wp_head', 'okja_output_theme_dynamic_css', 25 );
 }
 
 
@@ -2523,7 +3031,12 @@ function jhh_events_render( $attributes, $content = '', $block = null ) {
         if ( $show_angebot && $angebot_id > 0 ) {
             $angebot_title = get_the_title( $angebot_id );
             if ( $angebot_title ) {
-                echo '<span class="jhh-event-angebot-link">↳ ' . esc_html( $angebot_title ) . '</span>';
+                $angebot_bg = get_the_post_thumbnail_url( $angebot_id, 'medium_large' );
+                $badge_style = $angebot_bg ? ' style="background-image:url(' . esc_url( $angebot_bg ) . ');"' : '';
+                echo '<span class="jhh-event-angebot-badge"' . $badge_style . '>';
+                echo '<span class="jhh-event-angebot-badge-label">' . esc_html__( 'Angebot', 'jhh-posts-block' ) . '</span>';
+                echo '<span class="jhh-event-angebot-badge-name">' . esc_html( $angebot_title ) . '</span>';
+                echo '</span>';
             }
         }
 

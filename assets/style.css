@@ -2036,6 +2036,48 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
   margin-top: auto;
 }
 
+.jhh-event-angebot-badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 52px;
+  background: linear-gradient(135deg, #403737, #2c2727);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.jhh-event-angebot-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.62));
+  z-index: 0;
+}
+.jhh-event-angebot-badge-label,
+.jhh-event-angebot-badge-name {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+.jhh-event-angebot-badge-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  opacity: 0.9;
+}
+.jhh-event-angebot-badge-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+}
+
 /* Responsive Events Grid */
 @media (max-width: 900px) {
   .jhh-events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -2060,19 +2102,26 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
 /* Event Details Card */
 .jhh-event-details-card {
   position: relative;
-  background: #1e1b1b;
+  background: var(--jhh-event-card-bg, #1e1b1b);
+  color: var(--jhh-event-card-text, #fff);
   border-radius: 16px;
   padding: 28px 24px 24px;
-  margin: -40px auto 28px;
+  margin: -80px auto 28px;
   z-index: 2;
   max-width: 900px;
   overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .jhh-event-details-topline {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 5px;
-  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff);
+  background: var(--jhh-event-card-topline, linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff));
+}
+.jhh-event-details-topline.jhh-hidden {
+  display: none;
 }
 .jhh-event-details-grid {
   display: grid;
@@ -2100,12 +2149,12 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #888;
+  color: var(--jhh-event-card-label, #888);
 }
 .jhh-event-detail-value {
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--jhh-event-card-text, #fff);
 }
 
 /* Linked Angebot inside details card – full background image card */
@@ -2231,7 +2280,7 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
   margin: 0 0 14px;
   font-size: 1.4rem;
   font-family: 'Baloo 2', sans-serif;
-  color: #fff;
+  color: #1a1a1a;
 }
 .jhh-events-inline-grid {
   display: grid;
@@ -2351,7 +2400,7 @@ html:not([data-neve-theme="dark"]) .jhh-staff-card.bg-aurora .jhh-staff-contact{
 @media (max-width: 600px) {
   .jhh-events-inline-grid { grid-template-columns: 1fr; }
   .jhh-event-details-grid { grid-template-columns: 1fr 1fr; }
-  .jhh-event-details-card { margin: -24px 8px 20px; padding: 22px 16px 18px; }
+  .jhh-event-details-card { margin: -50px 8px 20px; padding: 22px 16px 18px; }
   .jhh-single-event .jhh-hero-overlay { min-height: 280px; }
 }
 @media (max-width: 400px) {

@@ -66,6 +66,42 @@ while ( have_posts() ) : the_post();
         $title_classes .= ' hover-' . esc_attr( $hero_hover );
     }
     $title_text = get_the_title();
+
+    // Event card style settings
+    $ec_style   = get_option( 'okja_event_card_style', 'simple' );
+    $ec_bg      = get_option( 'okja_event_card_bg', '#1e1b1b' );
+    $ec_text    = get_option( 'okja_event_card_text', '#ffffff' );
+    $ec_accent  = get_option( 'okja_event_card_accent', '#b9aaff' );
+    $ec_topline = get_option( 'okja_event_card_topline', '1' );
+    $ec_color_mode = get_option( 'okja_color_mode', 'auto' );
+
+    // Build event card inline style
+    $ec_inline_css = '';
+    $ec_grainy_map = [
+        'grainy-1' => JHH_PB_URL . 'assets/pexels-codioful-7130481.jpg',
+        'grainy-2' => JHH_PB_URL . 'assets/pexels-codioful-7130499.jpg',
+        'grainy-3' => JHH_PB_URL . 'assets/pexels-codioful-7130555.jpg',
+    ];
+    if ( $ec_style === 'notebook' ) {
+        $ec_inline_css = '--jhh-event-card-bg:#f5f1eb;--jhh-event-card-text:#333;--jhh-event-card-label:#888;background-color:#f5f1eb;color:#333;';
+    } elseif ( $ec_style === 'aurora' ) {
+        $ec_inline_css = '--jhh-event-card-text:#fff;--jhh-event-card-label:rgba(255,255,255,0.6);background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);color:#fff;';
+    } elseif ( isset( $ec_grainy_map[ $ec_style ] ) ) {
+        $ec_inline_css = '--jhh-event-card-text:#fff;--jhh-event-card-label:rgba(255,255,255,0.6);background-color:#141414;background-image:url(' . esc_url( $ec_grainy_map[ $ec_style ] ) . ');color:#fff;';
+    } elseif ( $ec_style === 'custom' ) {
+        $ec_inline_css = '--jhh-event-card-bg:' . esc_attr( $ec_bg ) . ';--jhh-event-card-text:' . esc_attr( $ec_text ) . ';--jhh-event-card-label:' . esc_attr( $ec_accent ) . ';background-color:' . esc_attr( $ec_bg ) . ';color:' . esc_attr( $ec_text ) . ';';
+    } else {
+        // simple (default) – let the dynamic theme CSS handle colors
+        // Only set explicit dark colors if forced to dark mode
+        if ( $ec_color_mode === 'dark' ) {
+            $ec_inline_css = '--jhh-event-card-bg:#1e1b1b;--jhh-event-card-text:#fff;--jhh-event-card-label:#888;';
+        }
+        // In 'auto' and 'light' mode, the dynamic CSS will handle it
+    }
+
+    // Topline gradient uses accent color
+    $ec_topline_css = '--jhh-event-card-topline:linear-gradient(90deg,' . esc_attr( $ec_accent ) . ',#ee0979,#8a2be2,#4169e1,#00c6ff);';
+    $ec_topline_hidden = ( $ec_topline !== '1' );
 ?>
 
 <main class="jhh-single-event" id="main">
@@ -86,8 +122,8 @@ while ( have_posts() ) : the_post();
     <div class="jhh-single-wrap">
 
         <!-- Event Details Card -->
-        <div class="jhh-event-details-card">
-            <div class="jhh-event-details-topline"></div>
+        <div class="jhh-event-details-card" style="<?php echo $ec_inline_css . $ec_topline_css; ?>">
+            <div class="jhh-event-details-topline<?php echo $ec_topline_hidden ? ' jhh-hidden' : ''; ?>"></div>
             <div class="jhh-event-details-grid">
                 <?php if ( $date_display ) : ?>
                 <div class="jhh-event-detail">
