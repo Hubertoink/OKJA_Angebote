@@ -49,6 +49,7 @@
   carouselPauseOnHover: { type: 'boolean', default: true },
   carouselIndicators: { type: 'boolean', default: true },
   carouselArrows: { type: 'boolean', default: true },
+  carouselBlur: { type: 'boolean', default: true },
   backUrl: { type: 'string', default: '' },
       singleShowEvents: { type: 'boolean', default: true },
       showImage: { type: 'boolean', default: true },
@@ -372,6 +373,12 @@
               label: 'Indikatoren anzeigen',
               checked: !!a.carouselIndicators,
               onChange: (val) => setAttributes({ carouselIndicators: val })
+            }),
+            a.layout === 'carousel' && el(ToggleControl, {
+              label: 'Hintergrund-Blur',
+              help: 'Weichzeichner-Effekt auf dem Hintergrundbild der Slides',
+              checked: a.carouselBlur !== false,
+              onChange: (val) => setAttributes({ carouselBlur: val })
             }),
 
             // Back URL for single page

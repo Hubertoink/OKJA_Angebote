@@ -450,9 +450,11 @@
 .jhh-carousel-prev{ left:6px; } .jhh-carousel-next{ right:6px; }
 .jhh-carousel-prev:hover,.jhh-carousel-next:hover{ color:#fff; opacity:.9; }
 .jhh-carousel-prev:focus,.jhh-carousel-next:focus{ outline: 2px solid #fff; outline-offset: 2px; border-radius:4px; }
-.jhh-carousel-dots{ position:absolute; bottom:10px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:2; }
-.jhh-carousel-dots button{ display:block; padding:0; width:6px; height:6px; border-radius:50%; border:none; background: rgba(255,255,255,.6); cursor:pointer; }
-.jhh-carousel-dots button[aria-current="true"]{ background: #fff; }
+.jhh-carousel-dots{ position:relative; bottom:auto; left:auto; right:auto; display:flex; justify-content:center; gap:8px; z-index:2; padding:12px 0 4px; }
+.jhh-carousel-dots button{ display:block; padding:0; width:8px; height:8px; border-radius:50%; border:none; background: rgba(255,255,255,.45); cursor:pointer; transition: background .2s, transform .2s; }
+.jhh-carousel-dots button[aria-current="true"]{ background: #fff; transform: scale(1.25); }
+/* No-blur modifier: disable background blur on slides */
+.jhh-carousel--no-blur .jhh-slide-bg{ filter: none; transform: none; }
 @media (max-width: 780px){
   .jhh-slide{ height: 320px; }
   .jhh-slide-overlay{ align-items:center; text-align:center; }

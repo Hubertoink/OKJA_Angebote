@@ -3,7 +3,9 @@
     if(!root) return;
     const track = root.querySelector('.jhh-carousel-track');
     const slides = Array.from(root.querySelectorAll('.jhh-slide'));
-    const dotsWrap = root.querySelector('.jhh-carousel-dots');
+    // Dots are now a sibling element after the carousel container
+    const dotsWrap = root.nextElementSibling && root.nextElementSibling.classList.contains('jhh-carousel-dots')
+      ? root.nextElementSibling : root.querySelector('.jhh-carousel-dots');
     const prevBtn = root.querySelector('.jhh-carousel-prev');
     const nextBtn = root.querySelector('.jhh-carousel-next');
 

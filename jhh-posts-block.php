@@ -1869,6 +1869,10 @@ if ( ! function_exists( 'okja_output_theme_dynamic_css' ) ) {
 
             // Back link – light
             $css .= "{$l} .jhh-back-link { background: #f0ebe4; color: #333; }\n";
+
+            // Carousel dots – light (dark dots on light background)
+            $css .= "{$l} .jhh-carousel-dots button { background: rgba(0,0,0,.25); }\n";
+            $css .= "{$l} .jhh-carousel-dots button[aria-current=\"true\"] { background: #333; }\n";
         }
 
         $css .= "</style>\n";
@@ -1982,6 +1986,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
             'carouselPauseOnHover' => [ 'type' => 'boolean', 'default' => true ],
             'carouselIndicators'   => [ 'type' => 'boolean', 'default' => true ],
             'carouselArrows'       => [ 'type' => 'boolean', 'default' => true ],
+            'carouselBlur'         => [ 'type' => 'boolean', 'default' => true ],
             'showImage'       => [ 'type' => 'boolean', 'default' => true ],
             'imageSize'       => [ 'type' => 'string',  'default' => 'medium' ],
             'imageHoverEffect' => [ 'type' => 'string',  'default' => 'none' ],
@@ -2388,7 +2393,11 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
             ! empty( $attributes['carouselIndicators'] ) ? 1 : 0
         );
 
-        echo '<div class="jhh-carousel" role="region" aria-label="Angebote Carousel"' . $data_attrs . '>';
+        $carousel_classes = 'jhh-carousel';
+        if ( isset( $attributes['carouselBlur'] ) && ! $attributes['carouselBlur'] ) {
+            $carousel_classes .= ' jhh-carousel--no-blur';
+        }
+        echo '<div class="' . esc_attr( $carousel_classes ) . '" role="region" aria-label="Angebote Carousel"' . $data_attrs . '>';
         echo '<div class="jhh-carousel-track" role="listbox">';
 
         if ( $q->have_posts() ) :
@@ -2492,8 +2501,8 @@ function jhh_pb_render( $attributes, $content = '', $block = null ) {
         // Arrows
         echo '<button class="jhh-carousel-prev" aria-label="Vorheriger Slide" tabindex="0">❮</button>';
         echo '<button class="jhh-carousel-next" aria-label="Nächster Slide" tabindex="0">❯</button>';
-        echo '<div class="jhh-carousel-dots" aria-hidden="false"></div>';
         echo '</div>'; // carousel
+        echo '<div class="jhh-carousel-dots" aria-hidden="false"></div>';
 
     } else {
         // default grid/list rendering
