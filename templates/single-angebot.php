@@ -10,8 +10,8 @@ get_header();
 while ( have_posts() ) : the_post();
     $post_id = get_the_ID();
     // ensure plugin styles are available on single view
-    if ( function_exists('wp_enqueue_style') ) {
-        wp_enqueue_style( 'jhh-posts-block-style' );
+    if ( function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
+        jhh_pb_enqueue_frontend_styles( [ 'single', 'team' ] );
     }
     $hero_url = get_the_post_thumbnail_url( $post_id, 'full' );
     $back_param = isset( $_GET['back'] ) ? esc_url_raw( wp_unslash( $_GET['back'] ) ) : '';
@@ -69,6 +69,8 @@ while ( have_posts() ) : the_post();
                             $styles = [];
                             if ( $bg )  $styles[] = '--jhh-term-' . $slug . '-bg:' . esc_attr( $bg );
                             if ( $txt ) $styles[] = '--jhh-term-' . $slug . '-color:' . esc_attr( $txt );
+                            if ( $bg )  $styles[] = '--jhh-badge-pa-bg:' . esc_attr( $bg );
+                            if ( $txt ) $styles[] = '--jhh-badge-pa-color:' . esc_attr( $txt );
                             if ( $styles ) $style_attr = ' style="' . implode( ';', $styles ) . '"';
                         }
                         $badges[] = sprintf('<span class="jhh-badge %s term-%s"%s>%s</span>', esc_attr( $cls ), esc_attr( $t->slug ), $style_attr, esc_html( $t->name ) );

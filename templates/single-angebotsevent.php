@@ -12,8 +12,8 @@ while ( have_posts() ) : the_post();
     $hero_url   = get_the_post_thumbnail_url( $post_id, 'full' );
     
     // Ensure plugin styles are available
-    if ( function_exists( 'wp_enqueue_style' ) ) {
-        wp_enqueue_style( 'jhh-posts-block-style' );
+    if ( function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
+        jhh_pb_enqueue_frontend_styles( [ 'single', 'events' ] );
     }
 
     // Event meta

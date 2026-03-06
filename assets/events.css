@@ -1,0 +1,523 @@
+/* ==========================================
+   Angebotsevents – Block Kacheln
+   ========================================== */
+.jhh-events-block { margin: 20px 0; }
+
+.jhh-event-card {
+  display: flex;
+  flex-direction: column;
+  background: #1e1b1b;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #e0e0e0;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.jhh-event-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff);
+  z-index: 1;
+}
+.jhh-event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.jhh-event-image {
+  position: relative;
+  overflow: hidden;
+  height: 160px;
+}
+.jhh-event-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.jhh-event-card:hover .jhh-event-thumb {
+  transform: scale(1.06);
+}
+.jhh-event-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.jhh-event-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+  line-height: 1.3;
+}
+.jhh-event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.jhh-event-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  color: #d0d0d0;
+  line-height: 1.3;
+}
+.jhh-event-date-badge { color: #a0d8ef; }
+.jhh-event-time-badge { color: #a0d8ef; }
+.jhh-event-price-badge { color: #b9aaff; }
+.jhh-event-part-badge { color: #f0c27f; }
+
+.jhh-event-excerpt {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #b0b0b0;
+  line-height: 1.45;
+}
+.jhh-event-angebot-link {
+  font-size: 0.82rem;
+  color: #b9aaff;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+.jhh-event-angebot-badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 52px;
+  background: linear-gradient(135deg, #403737, #2c2727);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.jhh-event-angebot-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.62));
+  z-index: 0;
+}
+.jhh-event-angebot-badge-label,
+.jhh-event-angebot-badge-name {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+.jhh-event-angebot-badge-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  opacity: 0.9;
+}
+.jhh-event-angebot-badge-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+}
+
+@media (max-width: 900px) {
+  .jhh-events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 600px) {
+  .jhh-events-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ==========================================
+   Angebotsevents – Single Page
+   ========================================== */
+.jhh-single-event .jhh-hero { position: relative; min-height: 380px; background-size: cover; background-position: center; }
+.jhh-single-event .jhh-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.6)); }
+.jhh-single-event .jhh-hero--no-image {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 280px;
+}
+.jhh-single-event .jhh-hero-overlay { position: relative; z-index: 1; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px 18px; text-align: center; min-height: 380px; }
+.jhh-single-event .jhh-hero--no-image .jhh-hero-overlay { min-height: 280px; }
+.jhh-single-event .jhh-hero-title { margin: 0; color: #fff; font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1.08; font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif; text-shadow: 0 2px 20px rgba(0,0,0,.4); }
+
+.jhh-event-details-card {
+  position: relative;
+  background: var(--jhh-event-card-bg, #1e1b1b);
+  color: var(--jhh-event-card-text, #fff);
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  margin: -80px auto 28px;
+  z-index: 2;
+  max-width: 900px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.jhh-event-details-topline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--jhh-event-card-topline, linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff));
+}
+.jhh-event-details-topline.jhh-hidden {
+  display: none;
+}
+.jhh-event-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+.jhh-event-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.jhh-event-detail-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+.jhh-event-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.jhh-event-detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--jhh-event-card-label, #888);
+}
+.jhh-event-detail-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--jhh-event-card-text, #fff);
+}
+
+.jhh-event-linked-angebot {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.jhh-event-angebot-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 28px 32px;
+  min-height: 100px;
+  max-width: 360px;
+  width: 100%;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #fff;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.jhh-event-angebot-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.45);
+  transition: filter 0.3s ease, transform 0.3s ease;
+  z-index: 0;
+}
+.jhh-event-angebot-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.jhh-event-angebot-card:hover::before {
+  filter: brightness(0.55);
+  transform: scale(1.05);
+}
+.jhh-event-angebot-thumb {
+  display: none;
+}
+.jhh-event-angebot-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.jhh-event-angebot-arrow {
+  font-size: 1.3rem;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.25s ease;
+}
+.jhh-event-angebot-card:hover .jhh-event-angebot-arrow {
+  transform: translateX(4px);
+}
+
+/* ==========================================
+   CTA / Anmeldung Button
+   ========================================== */
+.jhh-event-cta-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 24px;
+}
+.jhh-event-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 36px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b6b 0%, #e84393 50%, #a855f7 100%);
+  border: none;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(232, 67, 147, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.jhh-event-cta-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 24px rgba(232, 67, 147, 0.5);
+  filter: brightness(1.1);
+  color: #fff;
+}
+.jhh-event-cta-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.jhh-event-cta-btn--disabled {
+  background: #555;
+  box-shadow: none;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.jhh-event-cta-icon {
+  font-size: 1.3rem;
+}
+
+/* ==========================================
+   Angebotsevents – In Single-Angebot View
+   ========================================== */
+.jhh-events-section {
+  margin: 32px 0 20px;
+}
+.jhh-events-section h3 {
+  margin: 0 0 14px;
+  font-size: 1.4rem;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+  color: #1a1a1a;
+}
+.jhh-events-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.jhh-event-inline-card {
+  display: flex;
+  flex-direction: column;
+  background: #1e1b1b;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #e0e0e0;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.jhh-event-inline-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff);
+  z-index: 1;
+}
+.jhh-event-inline-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+.jhh-event-inline-image {
+  height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+.jhh-event-inline-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.jhh-event-inline-card:hover .jhh-event-inline-thumb {
+  transform: scale(1.05);
+}
+.jhh-event-inline-body {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  align-items: flex-start;
+}
+.jhh-event-inline-date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 6px 8px;
+  background: rgba(185, 170, 255, 0.12);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.jhh-event-inline-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+}
+.jhh-event-inline-month {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b9aaff;
+}
+.jhh-event-inline-info {
+  flex: 1;
+  min-width: 0;
+}
+.jhh-event-inline-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+  line-height: 1.3;
+}
+.jhh-event-inline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #a0a0a0;
+  font-weight: 500;
+}
+.jhh-event-inline-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.jhh-related-events {
+  margin: 32px 0 20px;
+}
+.jhh-related-events h3 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+}
+.jhh-related-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .jhh-events-inline-grid { grid-template-columns: 1fr; }
+  .jhh-event-details-grid { grid-template-columns: 1fr 1fr; }
+  .jhh-event-details-card { margin: -50px 8px 20px; padding: 22px 16px 18px; }
+  .jhh-single-event .jhh-hero-overlay { min-height: 280px; }
+}
+@media (max-width: 400px) {
+  .jhh-event-details-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================
+   Angebotsevents – Ausgebucht Banner
+   ========================================== */
+.jhh-event-sold-out-banner {
+  position: absolute;
+  top: 18px;
+  right: -32px;
+  z-index: 10;
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 40px;
+  transform: rotate(35deg);
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.jhh-event--sold-out {
+  opacity: 0.85;
+}
+.jhh-event--sold-out .jhh-event-thumb,
+.jhh-event--sold-out .jhh-event-inline-thumb {
+  filter: grayscale(0.5);
+}
+
+.jhh-event--past {
+  opacity: 0.6;
+}
+
+/* ==========================================
+   Angebotsevents – Hover-Beschreibung
+   ========================================== */
+.jhh-event-hover-desc {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.jhh-event-hover-desc p {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+}
+.jhh-event-inline-card:hover .jhh-event-hover-desc {
+  opacity: 1;
+}

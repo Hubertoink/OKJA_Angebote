@@ -1,0 +1,421 @@
+/* ==========================================
+   Layout-Grundstruktur
+   ========================================== */
+.jhh-posts-block {
+  display: grid;
+  gap: 16px;
+}
+
+.jhh-layout-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.jhh-layout-list {
+  grid-template-columns: 1fr;
+}
+
+/* ==========================================
+   Karten-Design
+   ========================================== */
+.jhh-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--nv-dark-bg);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+/* ==========================================
+   Thumbnail
+   ========================================== */
+.jhh-thumb {
+  display: block;
+  margin: -12px -14px 8px;
+  overflow: hidden;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.jhh-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+  transform-origin: center center;
+}
+
+/* ==========================================
+   Image Hover Effects
+   ========================================== */
+.jhh-thumb.jhh-hover-tilt {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-thumb.jhh-hover-tilt img {
+  transform-style: preserve-3d;
+}
+.jhh-thumb.jhh-hover-tilt:hover img {
+  transform: rotateY(-5deg) rotateX(3deg) scale(1.02);
+  box-shadow: 8px 8px 20px rgba(0,0,0,0.3);
+}
+
+.jhh-thumb.jhh-hover-zoom:hover img {
+  transform: scale(1.08);
+}
+
+.jhh-thumb.jhh-hover-glow:hover img {
+  filter: brightness(1.1) saturate(1.15);
+  box-shadow: 0 0 20px rgba(255, 150, 100, 0.4), 0 0 40px rgba(200, 100, 255, 0.25);
+}
+
+.jhh-thumb.jhh-hover-tilt-zoom {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-thumb.jhh-hover-tilt-zoom img {
+  transform-style: preserve-3d;
+}
+.jhh-thumb.jhh-hover-tilt-zoom:hover img {
+  transform: rotateY(-4deg) rotateX(2deg) scale(1.06);
+  box-shadow: 6px 6px 18px rgba(0,0,0,0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jhh-thumb img {
+    transition: none;
+  }
+  .jhh-thumb.jhh-hover-tilt:hover img,
+  .jhh-thumb.jhh-hover-zoom:hover img,
+  .jhh-thumb.jhh-hover-glow:hover img,
+  .jhh-thumb.jhh-hover-tilt-zoom:hover img {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+}
+
+/* ==========================================
+   Titel
+   ========================================== */
+.jhh-title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+.jhh-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.jhh-title a:hover {
+  color: #005bbb;
+}
+
+/* ==========================================
+   Meta-Infos
+   ========================================== */
+.jhh-meta {
+  font-size: .85rem;
+  color: #666;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* ==========================================
+   Taxonomien
+   ========================================== */
+.jhh-tax-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+
+/* ==========================================
+   Basis-Badge
+   ========================================== */
+.jhh-badge {
+  display: inline-block;
+  font-size: .78rem;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 2px;
+  margin-bottom: 2px;
+  background-color: transparent;
+  color: inherit;
+}
+
+.jhh-badge-jug {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-color: #000;
+  background-image:
+    linear-gradient(#000, #000),
+    linear-gradient(90deg, #ff6a00, #ee0979, #00c6ff);
+  color: #fff;
+}
+
+.jhh-badge-ta {
+  display: inline-block;
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================
+   Auszug
+   ========================================== */
+.jhh-excerpt {
+  margin-bottom: 10px;
+  color: inherit;
+}
+
+/* ==========================================
+   Gradientenlinie
+   ========================================== */
+.jhh-gradient-line {
+  height: 3px;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #8a2be2, #4169e1, #00c6ff, #00ff7f, #ffd700, #ff6a00);
+  border-radius: 2px;
+  width: 100%;
+}
+
+/* ==========================================
+   Einheitliche Bildhöhe
+   ========================================== */
+.jhh-post-image {
+  display: block;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  position: relative;
+}
+.jhh-post-image img.jhh-post-thumb {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  display: block;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+  transform-origin: center center;
+}
+
+.jhh-post-event-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(18, 18, 18, 0.78);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.jhh-post-image.jhh-hover-tilt {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-post-image.jhh-hover-tilt img {
+  transform-style: preserve-3d;
+}
+
+.jhh-post-image.jhh-hover-zoom:hover img {
+  transform: scale(1.08);
+}
+
+.jhh-post-image.jhh-hover-glow:hover img {
+  filter: brightness(1.1) saturate(1.15);
+  box-shadow: 0 0 20px rgba(255, 150, 100, 0.4), 0 0 40px rgba(200, 100, 255, 0.25);
+}
+
+.jhh-post-image.jhh-hover-tilt-zoom {
+  overflow: visible;
+  perspective: 800px;
+}
+.jhh-post-image.jhh-hover-tilt-zoom img {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jhh-post-image img {
+    transition: none;
+  }
+  .jhh-post-image.jhh-hover-tilt:hover img,
+  .jhh-post-image.jhh-hover-zoom:hover img,
+  .jhh-post-image.jhh-hover-glow:hover img,
+  .jhh-post-image.jhh-hover-tilt-zoom:hover img {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .jhh-post-image img.jhh-post-thumb { height: 280px; }
+}
+@media (max-width: 600px) {
+  .jhh-post-image img.jhh-post-thumb { height: 220px; }
+}
+
+/* ==========================================
+   Weiterlesen Button
+   ========================================== */
+.jhh-readmore {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #005bbb;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.jhh-readmore:hover {
+  background-color: #004499;
+}
+
+/* ==========================================
+   Editor-Reorder UI
+   ========================================== */
+.jhh-reorder-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.jhh-reorder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+.jhh-reorder-label {
+  font-size: 13px;
+}
+.jhh-reorder-actions .components-button {
+  margin-left: 4px;
+}
+
+/* ==========================================
+   Responsive Anpassung
+   ========================================== */
+@media (max-width: 1000px) {
+  .jhh-posts {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .jhh-posts {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.jhh-post-readmore {
+  display: block;
+  margin: 0 auto;
+}
+
+.jhh-post-title a {
+  pointer-events: none;
+  text-decoration: none;
+  color: var(--nv-text-color);
+  cursor: default;
+}
+.jhh-post-title {
+  text-align: center;
+}
+
+/* ==========================================
+   Listenlayout
+   ========================================== */
+.jhh-posts-block.layout-list .jhh-posts {
+  display: flex !important;
+  flex-direction: column;
+  gap: 24px;
+}
+.jhh-list-item .jhh-list-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+.jhh-list-item.image-right .jhh-list-row { grid-template-columns: 1fr 1.1fr; }
+.jhh-list-item.image-right .jhh-list-media { order: 2; }
+.jhh-list-item.image-right .jhh-list-content { order: 1; }
+.jhh-list-media a.jhh-post-image { display:block; border-radius: 12px; overflow:hidden; }
+.jhh-list-content { display:flex; flex-direction:column; gap:10px; }
+.jhh-list-content .jhh-post-title { text-align:left; margin:0; }
+.jhh-list-content .jhh-post-taxonomies { margin-top:6px; }
+.jhh-list-content .jhh-post-excerpt { margin: 4px 0 8px; }
+.jhh-list-content .jhh-post-readmore { align-self:flex-start; }
+.jhh-list-item .jhh-list-bg{ display:none; }
+
+@media (max-width: 900px){
+  .jhh-list-item .jhh-list-row { grid-template-columns: 1fr; }
+  .jhh-list-item.image-right .jhh-list-row { grid-template-columns: 1fr !important; }
+  .jhh-list-item.image-right .jhh-list-media { order: 0; }
+  .jhh-list-item.has-bg{ position:relative; overflow:hidden; border-radius:12px; }
+  .jhh-list-item.has-bg .jhh-list-bg{ display:block; position:absolute; inset:0; background-position:center; background-size:cover; filter: blur(10px) saturate(1.05); transform: scale(1.08); }
+  .jhh-list-item.has-bg::after{ content:''; position:absolute; inset:0; background: rgba(0,0,0,.35); }
+  .jhh-list-item.has-bg .jhh-list-media{ display:none; }
+  .jhh-list-item.has-bg .jhh-list-content{ position:relative; z-index:1; color:#fff; padding: 16px 16px 18px; }
+  .jhh-list-item.has-bg .jhh-list-content .jhh-post-title{ padding-top: 8px; }
+  .jhh-list-item.has-bg .jhh-list-content .jhh-post-title a{ color:#fff !important; }
+  .jhh-list-item.has-bg .jhh-post-excerpt{ color:#fff; }
+  .jhh-list-item.has-bg .jhh-post-readmore{ margin-bottom: 10px; }
+}
+
+/* ==========================================
+   Carousel
+   ========================================== */
+.jhh-carousel{ position:relative; overflow:hidden; border-radius:12px; }
+.jhh-carousel-track{ display:flex; transition: transform .5s ease; will-change:transform; }
+.jhh-slide{ position:relative; min-width:100%; height:420px; overflow:hidden; }
+.jhh-slide-bg{ position:absolute; inset:0; background-position:center; background-size:cover; filter: blur(10px) saturate(1.05); transform: scale(1.08); }
+.jhh-slide::after{ content:''; position:absolute; inset:0; background: rgba(0,0,0,.35); }
+.jhh-slide-overlay{ position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:10px; padding:28px; color:#fff; }
+.jhh-slide-title{ font-size: clamp(1.4rem, 2.8vw, 2.2rem); margin:0; }
+.jhh-slide-excerpt{ font-size: clamp(.95rem, 1.6vw, 1.05rem); max-width: 70ch; margin:0; }
+.jhh-slide-readmore{ display:inline-block; margin-top:8px; padding:8px 14px; background:#fff !important; color:#111 !important; border-radius:999px; text-decoration:none; font-weight:700; }
+.jhh-slide-readmore:hover{ background:#f0f0f0 !important; color:#000 !important; }
+.jhh-carousel-prev,.jhh-carousel-next{ position:absolute; top:50%; transform: translateY(-50%); background:transparent; color:#fff; border:none; padding:10px; width:auto; height:auto; border-radius:0; cursor:pointer; z-index:2; font-size:28px; line-height:1; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.jhh-carousel-prev{ left:6px; }
+.jhh-carousel-next{ right:6px; }
+.jhh-carousel-prev:hover,.jhh-carousel-next:hover{ color:#fff; opacity:.9; }
+.jhh-carousel-prev:focus,.jhh-carousel-next:focus{ outline: 2px solid #fff; outline-offset: 2px; border-radius:4px; }
+.jhh-carousel-dots{ position:relative; bottom:auto; left:auto; right:auto; display:flex; justify-content:center; gap:8px; z-index:2; padding:12px 0 4px; }
+.jhh-carousel-dots button{ display:block; padding:0; width:8px; height:8px; border-radius:50%; border:none; background: rgba(255,255,255,.45); cursor:pointer; transition: background .2s, transform .2s; }
+.jhh-carousel-dots button[aria-current="true"]{ background: #fff; transform: scale(1.25); }
+.jhh-carousel--no-blur .jhh-slide-bg{ filter: none; transform: none; }
+
+@media (max-width: 780px){
+  .jhh-slide{ height: 320px; }
+  .jhh-slide-overlay{ align-items:center; text-align:center; }
+}

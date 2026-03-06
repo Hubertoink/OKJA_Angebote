@@ -173,19 +173,58 @@ add_action( 'pre_get_posts', function( $query ) {
 // ------------------------------------------------------------
 // Plugin-Einstellungen: Globaler Staff Card Style + Farben
 // ------------------------------------------------------------
-add_action( 'admin_menu', function() {
-    add_options_page(
+function okja_get_settings_page_slug() {
+    return 'okja-angebote-settings';
+}
+
+function okja_get_settings_parent_slug() {
+    return 'edit.php?post_type=angebot';
+}
+
+function okja_register_settings_submenu() {
+    global $okja_settings_page_hook;
+
+    $okja_settings_page_hook = add_submenu_page(
+        okja_get_settings_parent_slug(),
         __( 'OKJA Angebote Einstellungen', 'jhh-posts-block' ),
-        __( 'OKJA Angebote', 'jhh-posts-block' ),
+        __( 'OKJA Angebote Einstellungen', 'jhh-posts-block' ),
         'manage_options',
-        'okja-angebote-settings',
+        okja_get_settings_page_slug(),
         'okja_render_settings_page'
     );
+}
+
+add_action( 'admin_menu', 'okja_register_settings_submenu', 99 );
+
+add_action( 'admin_menu', function() {
+    remove_submenu_page( 'options-general.php', okja_get_settings_page_slug() );
+}, 100 );
+
+add_action( 'admin_init', function() {
+    global $pagenow;
+
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if ( $pagenow !== 'options-general.php' ) {
+        return;
+    }
+
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+    if ( $page !== okja_get_settings_page_slug() ) {
+        return;
+    }
+
+    wp_safe_redirect( admin_url( okja_get_settings_parent_slug() . '&page=' . okja_get_settings_page_slug() ) );
+    exit;
 } );
 
 // Enqueue color picker on settings page
 add_action( 'admin_enqueue_scripts', function( $hook ) {
-    if ( $hook !== 'settings_page_okja-angebote-settings' ) return;
+    global $okja_settings_page_hook;
+
+    if ( ! $okja_settings_page_hook || $hook !== $okja_settings_page_hook ) return;
     wp_enqueue_script( 'jquery' );
     wp_enqueue_style( 'wp-color-picker' );
     wp_enqueue_script( 'wp-color-picker' );
@@ -1533,19 +1572,32 @@ add_action( 'edited_' . JHH_TAX_STAFF,  $__jhh_staff_save_cb );
 
 add_action( 'init', function() {
     // Cache-busting: use file mtime so editor always gets the newest assets after updates.
-    $style_css  = JHH_PB_DIR . 'assets/style.css';
-    $editor_css = JHH_PB_DIR . 'assets/editor.css';
-    $editor_js  = JHH_PB_DIR . 'assets/editor.js';
-    $carousel_js = JHH_PB_DIR . 'assets/carousel.js';
-    $tilt_js     = JHH_PB_DIR . 'assets/tilt-effect.js';
+    $legacy_style_css = JHH_PB_DIR . 'assets/style.css';
+    $posts_css        = JHH_PB_DIR . 'assets/blocks.css';
+    $single_css       = JHH_PB_DIR . 'assets/single.css';
+    $team_css         = JHH_PB_DIR . 'assets/team.css';
+    $events_css       = JHH_PB_DIR . 'assets/events.css';
+    $editor_css       = JHH_PB_DIR . 'assets/editor.css';
+    $editor_js        = JHH_PB_DIR . 'assets/editor.js';
+    $carousel_js      = JHH_PB_DIR . 'assets/carousel.js';
+    $tilt_js          = JHH_PB_DIR . 'assets/tilt-effect.js';
 
-    $v_style   = file_exists( $style_css )  ? JHH_PB_VERSION . '.' . filemtime( $style_css )  : JHH_PB_VERSION;
-    $v_editorc = file_exists( $editor_css ) ? JHH_PB_VERSION . '.' . filemtime( $editor_css ) : JHH_PB_VERSION;
-    $v_editorj = file_exists( $editor_js )  ? JHH_PB_VERSION . '.' . filemtime( $editor_js )  : JHH_PB_VERSION;
-    $v_car     = file_exists( $carousel_js ) ? JHH_PB_VERSION . '.' . filemtime( $carousel_js ) : JHH_PB_VERSION;
-    $v_tilt    = file_exists( $tilt_js )     ? JHH_PB_VERSION . '.' . filemtime( $tilt_js )     : JHH_PB_VERSION;
+    $v_legacy  = file_exists( $legacy_style_css ) ? JHH_PB_VERSION . '.' . filemtime( $legacy_style_css ) : JHH_PB_VERSION;
+    $v_posts   = file_exists( $posts_css )        ? JHH_PB_VERSION . '.' . filemtime( $posts_css )        : JHH_PB_VERSION;
+    $v_single  = file_exists( $single_css )       ? JHH_PB_VERSION . '.' . filemtime( $single_css )       : JHH_PB_VERSION;
+    $v_team    = file_exists( $team_css )         ? JHH_PB_VERSION . '.' . filemtime( $team_css )         : JHH_PB_VERSION;
+    $v_events  = file_exists( $events_css )       ? JHH_PB_VERSION . '.' . filemtime( $events_css )       : JHH_PB_VERSION;
+    $v_editorc = file_exists( $editor_css )       ? JHH_PB_VERSION . '.' . filemtime( $editor_css )       : JHH_PB_VERSION;
+    $v_editorj = file_exists( $editor_js )        ? JHH_PB_VERSION . '.' . filemtime( $editor_js )        : JHH_PB_VERSION;
+    $v_car     = file_exists( $carousel_js )      ? JHH_PB_VERSION . '.' . filemtime( $carousel_js )      : JHH_PB_VERSION;
+    $v_tilt    = file_exists( $tilt_js )          ? JHH_PB_VERSION . '.' . filemtime( $tilt_js )          : JHH_PB_VERSION;
 
-    wp_register_style( 'jhh-posts-block-style', JHH_PB_URL . 'assets/style.css', [], $v_style );
+    wp_register_style( 'jhh-posts-block-style', JHH_PB_URL . 'assets/blocks.css', [], $v_posts );
+    wp_register_style( 'jhh-posts-block-posts-style', JHH_PB_URL . 'assets/blocks.css', [], $v_posts );
+    wp_register_style( 'jhh-posts-block-single-style', JHH_PB_URL . 'assets/single.css', [], $v_single );
+    wp_register_style( 'jhh-posts-block-team-style', JHH_PB_URL . 'assets/team.css', [], $v_team );
+    wp_register_style( 'jhh-posts-block-events-style', JHH_PB_URL . 'assets/events.css', [], $v_events );
+    wp_register_style( 'jhh-posts-block-legacy-style', JHH_PB_URL . 'assets/style.css', [], $v_legacy );
     wp_register_style( 'jhh-posts-block-editor-style', JHH_PB_URL . 'assets/editor.css', [ 'wp-edit-blocks' ], $v_editorc );
 
     wp_register_script(
@@ -1599,6 +1651,29 @@ add_action( 'enqueue_block_editor_assets', function() {
         }, get_posts( [ 'post_type' => 'angebot', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC', 'post_status' => 'publish' ] ) ),
     ] );
 });
+
+if ( ! function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
+    function jhh_pb_enqueue_frontend_styles( $groups ) {
+        $groups = array_values( array_unique( array_filter( (array) $groups ) ) );
+
+        if ( empty( $groups ) ) {
+            return;
+        }
+
+        $handle_map = [
+            'posts'  => 'jhh-posts-block-posts-style',
+            'single' => 'jhh-posts-block-single-style',
+            'team'   => 'jhh-posts-block-team-style',
+            'events' => 'jhh-posts-block-events-style',
+        ];
+
+        foreach ( $groups as $group ) {
+            if ( isset( $handle_map[ $group ] ) ) {
+                wp_enqueue_style( $handle_map[ $group ] );
+            }
+        }
+    }
+}
 
 
 // Hilfsfunktion: HEX abdunkeln (z.B. 0.25 = 25%)
@@ -1968,7 +2043,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
 	
     register_block_type( 'jhh/posts', [
         'api_version'     => 2,
-        'style'           => 'jhh-posts-block-style',
+        'style'           => 'jhh-posts-block-posts-style',
         'editor_style'    => 'jhh-posts-block-editor-style',
         'editor_script'   => 'jhh-posts-block-editor',
         'render_callback' => 'jhh_pb_render',
@@ -2046,7 +2121,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
     // New dynamic block: JHH Team
     register_block_type( 'jhh/team', [
         'api_version'     => 2,
-        'style'           => 'jhh-posts-block-style',
+        'style'           => 'jhh-posts-block-team-style',
         'editor_style'    => 'jhh-posts-block-editor-style',
         'editor_script'   => 'jhh-posts-block-editor',
         'render_callback' => 'jhh_team_render',
@@ -2080,7 +2155,7 @@ add_action( 'edited_paedagogik', function( $term_id ) {
     // New dynamic block: JHH Events (Angebotsevents)
     register_block_type( 'jhh/events', [
         'api_version'     => 2,
-        'style'           => 'jhh-posts-block-style',
+        'style'           => 'jhh-posts-block-events-style',
         'editor_style'    => 'jhh-posts-block-editor-style',
         'editor_script'   => 'jhh-posts-block-editor',
         'render_callback' => 'jhh_events_render',
@@ -2195,8 +2270,7 @@ function jhh_pb_has_upcoming_event( $angebot_id ) {
  * Render callback
  */
 function jhh_pb_render( $attributes, $content = '', $block = null ) {
-    // Enqueue frontend styles
-    wp_enqueue_style( 'jhh-posts-block-style' );
+    jhh_pb_enqueue_frontend_styles( [ 'posts' ] );
     
     $post_type     = isset( $attributes['postType'] ) ? sanitize_key( $attributes['postType'] ) : 'post';
     $posts_to_show = isset( $attributes['postsToShow'] ) ? max( 1, (int) $attributes['postsToShow'] ) : 6;
@@ -2699,8 +2773,7 @@ if ( $show_readmore ) {
  * Displays Jugendarbeit terms as team member cards with optional avatar, email, bio, and related Angebote badges.
  */
 function jhh_team_render( $attributes, $content = '', $block = null ) {
-    // Ensure CSS is available
-    wp_enqueue_style( 'jhh-posts-block-style' );
+    jhh_pb_enqueue_frontend_styles( [ 'team' ] );
 
     // Resolve taxonomy slug
     $tax = defined('JHH_TAX_JUGEND') ? JHH_TAX_JUGEND : 'jugendarbeit';
@@ -2886,7 +2959,7 @@ function jhh_team_render( $attributes, $content = '', $block = null ) {
  * Displays Angebotsevents as attractive event cards.
  */
 function jhh_events_render( $attributes, $content = '', $block = null ) {
-    wp_enqueue_style( 'jhh-posts-block-style' );
+    jhh_pb_enqueue_frontend_styles( [ 'events' ] );
 
     $posts_to_show    = max( 1, (int) ( $attributes['postsToShow'] ?? 6 ) );
     $columns          = max( 1, (int) ( $attributes['columns'] ?? 3 ) );
