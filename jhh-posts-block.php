@@ -405,6 +405,18 @@ if ( ! function_exists( 'jhh_pb_use_event_modal' ) ) {
     }
 }
 
+if ( ! function_exists( 'jhh_pb_show_event_calendar_button' ) ) {
+    function jhh_pb_show_event_calendar_button() {
+        return get_option( 'okja_event_calendar_button', '1' ) === '1';
+    }
+}
+
+if ( ! function_exists( 'jhh_pb_show_event_modal_permalink_button' ) ) {
+    function jhh_pb_show_event_modal_permalink_button() {
+        return get_option( 'okja_event_modal_permalink_button', '1' ) === '1';
+    }
+}
+
 if ( ! function_exists( 'jhh_pb_enqueue_event_modal_assets' ) ) {
     function jhh_pb_enqueue_event_modal_assets() {
         static $localized = false;
@@ -420,6 +432,7 @@ if ( ! function_exists( 'jhh_pb_enqueue_event_modal_assets' ) ) {
             wp_localize_script( 'jhh-posts-event-modal', 'jhhEventModalData', [
                 'ajaxUrl' => admin_url( 'admin-ajax.php' ),
                 'nonce'   => wp_create_nonce( 'jhh_pb_event_modal' ),
+                'showPermalink' => jhh_pb_show_event_modal_permalink_button(),
                 'labels'  => [
                     'close'   => __( 'Schließen', 'jhh-posts-block' ),
                     'loading' => __( 'Event wird geladen...', 'jhh-posts-block' ),
@@ -1055,6 +1068,178 @@ function jhh_pb_has_upcoming_event( $angebot_id ) {
     return $cache[ $angebot_id ];
 }
 
+if ( ! function_exists( 'jhh_pb_angebot_has_visible_staff_cards' ) ) {
+    function jhh_pb_angebot_has_visible_staff_cards( $angebot_id ) {
+        static $cache = [];
+
+        $angebot_id = (int) $angebot_id;
+        if ( $angebot_id <= 0 ) {
+            return false;
+        }
+
+        if ( array_key_exists( $angebot_id, $cache ) ) {
+            return $cache[ $angebot_id ];
+        }
+
+        if ( ! defined( 'JHH_TAX_JUGEND' ) || ! taxonomy_exists( JHH_TAX_JUGEND ) ) {
+            $cache[ $angebot_id ] = false;
+            return false;
+        }
+
+        $staff_terms = get_the_terms( $angebot_id, JHH_TAX_JUGEND );
+        if ( empty( $staff_terms ) || is_wp_error( $staff_terms ) ) {
+            $cache[ $angebot_id ] = false;
+            return false;
+        }
+
+        foreach ( $staff_terms as $term ) {
+            $bio     = (string) get_term_meta( $term->term_id, 'bio', true );
+            $contact = (string) get_term_meta( $term->term_id, 'contact', true );
+
+            if ( trim( wp_strip_all_tags( $bio ) ) !== '' || trim( $contact ) !== '' ) {
+                $cache[ $angebot_id ] = true;
+                return true;
+            }
+        }
+
+        $cache[ $angebot_id ] = false;
+        return false;
+    }
+}
+
+if ( ! function_exists( 'jhh_pb_angebot_has_visible_events' ) ) {
+    function jhh_pb_angebot_has_visible_events( $angebot_id ) {
+        static $cache = [];
+
+        $angebot_id = (int) $angebot_id;
+        if ( $angebot_id <= 0 ) {
+            return false;
+        }
+
+        if ( array_key_exists( $angebot_id, $cache ) ) {
+            return $cache[ $angebot_id ];
+        }
+
+        if ( get_option( 'okja_events_show_in_angebot', '1' ) !== '1' ) {
+            $cache[ $angebot_id ] = false;
+            return false;
+        }
+
+        $today_ts    = current_time( 'timestamp' );
+        $today       = wp_date( 'Y-m-d', $today_ts );
+        $future_days = (int) get_option( 'okja_events_future_days', 365 );
+        $past_days   = (int) get_option( 'okja_events_past_days', 0 );
+        $start_date  = $past_days > 0 ? wp_date( 'Y-m-d', strtotime( '-' . $past_days . ' days', $today_ts ) ) : $today;
+        $end_date    = $future_days > 0 ? wp_date( 'Y-m-d', strtotime( '+' . $future_days . ' days', $today_ts ) ) : '';
+
+        $meta_query = [
+            [
+                'key'     => 'jhh_event_angebot_id',
+                'value'   => $angebot_id,
+                'compare' => '=',
+                'type'    => 'NUMERIC',
+            ],
+            [
+                'key'     => 'jhh_event_date',
+                'value'   => $start_date,
+                'compare' => '>=',
+                'type'    => 'DATE',
+            ],
+        ];
+
+        if ( $end_date ) {
+            $meta_query[] = [
+                'key'     => 'jhh_event_date',
+                'value'   => $end_date,
+                'compare' => '<=',
+                'type'    => 'DATE',
+            ];
+        }
+
+        $q = new WP_Query( [
+            'post_type'           => 'angebotsevent',
+            'post_status'         => 'publish',
+            'posts_per_page'      => 1,
+            'ignore_sticky_posts' => true,
+            'no_found_rows'       => true,
+            'fields'              => 'ids',
+            'meta_key'            => 'jhh_event_date',
+            'orderby'             => 'meta_value',
+            'order'               => 'ASC',
+            'meta_query'          => $meta_query,
+        ] );
+
+        $cache[ $angebot_id ] = $q->have_posts();
+        return $cache[ $angebot_id ];
+    }
+}
+
+if ( ! function_exists( 'jhh_pb_get_single_angebot_style_groups' ) ) {
+    function jhh_pb_get_single_angebot_style_groups( $angebot_id ) {
+        $groups = [ 'single' ];
+
+        if ( jhh_pb_angebot_has_visible_staff_cards( $angebot_id ) ) {
+            $groups[] = 'team';
+        }
+
+        if ( jhh_pb_angebot_has_visible_events( $angebot_id ) ) {
+            $groups[] = 'events';
+        }
+
+        return $groups;
+    }
+}
+
+if ( ! function_exists( 'jhh_pb_render_single_hero_markup' ) ) {
+    function jhh_pb_render_single_hero_markup( $post_id, $args = [] ) {
+        $post_id = (int) $post_id;
+        if ( $post_id <= 0 ) {
+            return '';
+        }
+
+        $args = wp_parse_args( $args, [
+            'section_class'      => 'jhh-hero',
+            'title_class'        => 'jhh-hero-title',
+            'title_text'         => get_the_title( $post_id ),
+            'image_size'         => 'large',
+            'sizes'              => '100vw',
+            'eager'              => true,
+            'include_data_text'  => false,
+        ] );
+
+        $thumb_id = get_post_thumbnail_id( $post_id );
+        if ( ! $thumb_id ) {
+            return '';
+        }
+
+        $image_html = wp_get_attachment_image( $thumb_id, $args['image_size'], false, [
+            'class'         => 'jhh-hero-image',
+            'loading'       => $args['eager'] ? 'eager' : 'lazy',
+            'fetchpriority' => $args['eager'] ? 'high' : 'auto',
+            'decoding'      => 'async',
+            'sizes'         => (string) $args['sizes'],
+        ] );
+
+        if ( ! $image_html ) {
+            return '';
+        }
+
+        $title_attr = '';
+        if ( $args['include_data_text'] ) {
+            $title_attr = ' data-text="' . esc_attr( $args['title_text'] ) . '"';
+        }
+
+        return sprintf(
+            '<section class="%1$s"><div class="jhh-hero-media">%2$s</div><div class="jhh-hero-overlay"><h1 class="%3$s"%4$s>%5$s</h1></div></section>',
+            esc_attr( $args['section_class'] ),
+            $image_html,
+            esc_attr( $args['title_class'] ),
+            $title_attr,
+            esc_html( $args['title_text'] )
+        );
+    }
+}
+
 if ( ! function_exists( 'jhh_pb_get_event_calendar_payload' ) ) {
     function jhh_pb_get_event_calendar_payload( $post_id ) {
         $post_id    = (int) $post_id;
@@ -1161,6 +1346,10 @@ if ( ! function_exists( 'jhh_pb_get_event_calendar_links' ) ) {
 
 if ( ! function_exists( 'jhh_pb_render_event_calendar_actions' ) ) {
     function jhh_pb_render_event_calendar_actions( $post_id ) {
+        if ( ! jhh_pb_show_event_calendar_button() ) {
+            return '';
+        }
+
         $links = jhh_pb_get_event_calendar_links( $post_id );
         if ( empty( $links ) ) {
             return '';
@@ -1239,6 +1428,7 @@ if ( ! function_exists( 'jhh_pb_get_event_detail_markup' ) ) {
         $sold_out     = (bool) get_post_meta( $post_id, 'jhh_event_sold_out', true );
         $cta_url      = get_post_meta( $post_id, 'jhh_event_cta_url', true );
         $cta_label    = get_post_meta( $post_id, 'jhh_event_cta_label', true );
+        $show_modal_permalink = jhh_pb_show_event_modal_permalink_button();
         $date_display = '';
         $date_weekday = '';
 
@@ -1297,7 +1487,9 @@ if ( ! function_exists( 'jhh_pb_get_event_detail_markup' ) ) {
                     <div class="jhh-event-modal-cover-overlay">
                         <p class="jhh-event-modal-kicker"><?php esc_html_e( 'Angebotsevent', 'jhh-posts-block' ); ?></p>
                         <h2 class="jhh-event-modal-title"><?php echo esc_html( get_the_title( $post_id ) ); ?></h2>
-                        <a class="jhh-event-modal-permalink" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php esc_html_e( 'Event als Seite öffnen', 'jhh-posts-block' ); ?></a>
+                        <?php if ( $show_modal_permalink ) : ?>
+                            <a class="jhh-event-modal-permalink" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php esc_html_e( 'Event als Seite öffnen', 'jhh-posts-block' ); ?></a>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endif; ?>

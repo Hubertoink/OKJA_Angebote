@@ -10,7 +10,10 @@
     var content = null;
     var closeButton = null;
     var lastFocused = null;
-    var savedScrollY = 0;
+    var docEl = document.documentElement;
+    var eventHtmlCache = Object.create(null);
+    var eventRequestCache = Object.create(null);
+    var maxInitialPrefetch = 6;
 
     function ensureModal() {
         if (root) {
@@ -43,9 +46,11 @@
 
     function openModal() {
         ensureModal();
-        savedScrollY = window.scrollY;
         root.hidden = false;
-        document.body.style.top = '-' + savedScrollY + 'px';
+        root.classList.remove('is-closing');
+        if (docEl) {
+            docEl.classList.add('jhh-event-modal-open');
+        }
         document.body.classList.add('jhh-event-modal-open');
         lastFocused = document.activeElement;
         if (closeButton) {
@@ -66,9 +71,10 @@
         setTimeout(function () {
             root.hidden = true;
             root.classList.remove('is-closing');
+            if (docEl) {
+                docEl.classList.remove('jhh-event-modal-open');
+            }
             document.body.classList.remove('jhh-event-modal-open');
-            document.body.style.top = '';
-            window.scrollTo(0, savedScrollY);
             if (content) {
                 content.innerHTML = '';
             }
@@ -88,7 +94,7 @@
 
     function setError(message, href) {
         var html = '<div class="jhh-event-modal-error"><p>' + escapeHtml(message || ((data.labels && data.labels.error) || 'Das Event konnte gerade nicht geladen werden.')) + '</p>';
-        if (href) {
+        if (href && data.showPermalink !== false) {
             html += '<p><a class="jhh-event-modal-permalink" href="' + escapeAttribute(href) + '">' + escapeHtml((data.labels && data.labels.open) || 'Event als Seite öffnen') + '</a></p>';
         }
         html += '</div>';
@@ -96,15 +102,26 @@
         root.classList.remove('is-loading');
     }
 
-    function fetchEvent(eventId, href) {
-        setLoading();
+    function requestEvent(eventId) {
+        var cacheKey = String(eventId || '');
+        if (!cacheKey) {
+            return Promise.reject(new Error('missing_event_id'));
+        }
+
+        if (eventHtmlCache[cacheKey]) {
+            return Promise.resolve(eventHtmlCache[cacheKey]);
+        }
+
+        if (eventRequestCache[cacheKey]) {
+            return eventRequestCache[cacheKey];
+        }
 
         var body = new URLSearchParams();
         body.set('action', 'jhh_pb_get_event_modal');
         body.set('nonce', data.nonce || '');
-        body.set('event_id', String(eventId));
+        body.set('event_id', cacheKey);
 
-        fetch(data.ajaxUrl, {
+        eventRequestCache[cacheKey] = fetch(data.ajaxUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
@@ -115,15 +132,100 @@
             return response.json();
         }).then(function (response) {
             if (!response || !response.success || !response.data || !response.data.html) {
-                setError((response && response.data && response.data.message) || '', href);
-                return;
+                throw new Error((response && response.data && response.data.message) || 'event_modal_failed');
             }
 
-            content.innerHTML = response.data.html;
+            eventHtmlCache[cacheKey] = response.data.html;
+            delete eventRequestCache[cacheKey];
+            return response.data.html;
+        }).catch(function (error) {
+            delete eventRequestCache[cacheKey];
+            throw error;
+        });
+
+        return eventRequestCache[cacheKey];
+    }
+
+    function openCachedEvent(html) {
+        ensureModal();
+        content.innerHTML = html;
+        root.classList.remove('is-loading');
+        openModal();
+    }
+
+    function fetchEvent(eventId, href) {
+        var cacheKey = String(eventId || '');
+
+        if (cacheKey && eventHtmlCache[cacheKey]) {
+            openCachedEvent(eventHtmlCache[cacheKey]);
+            return;
+        }
+
+        setLoading();
+
+        requestEvent(cacheKey).then(function (html) {
+            content.innerHTML = html;
             root.classList.remove('is-loading');
         }).catch(function () {
             setError('', href);
         });
+    }
+
+    function prefetchEventLink(link) {
+        if (!link) {
+            return;
+        }
+
+        var eventId = link.getAttribute('data-jhh-event-id');
+        if (!eventId) {
+            return;
+        }
+
+        requestEvent(eventId).catch(function () {
+            return null;
+        });
+    }
+
+    function getPrefetchCandidates() {
+        var seen = Object.create(null);
+        var links = document.querySelectorAll('[data-jhh-event-modal="1"][data-jhh-event-id]');
+        var candidates = [];
+
+        for (var i = 0; i < links.length; i++) {
+            var eventId = links[i].getAttribute('data-jhh-event-id');
+            if (!eventId || seen[eventId]) {
+                continue;
+            }
+
+            seen[eventId] = true;
+            candidates.push(links[i]);
+
+            if (candidates.length >= maxInitialPrefetch) {
+                break;
+            }
+        }
+
+        return candidates;
+    }
+
+    function scheduleInitialPrefetch() {
+        var candidates = getPrefetchCandidates();
+        if (!candidates.length) {
+            return;
+        }
+
+        var run = function () {
+            for (var i = 0; i < candidates.length; i++) {
+                prefetchEventLink(candidates[i]);
+            }
+        };
+
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(run, { timeout: 1800 });
+            return;
+        }
+
+        window.setTimeout(run, 250);
     }
 
     document.addEventListener('click', function (event) {
@@ -139,6 +241,27 @@
         event.preventDefault();
         fetchEvent(link.getAttribute('data-jhh-event-id'), link.getAttribute('href') || '');
     });
+
+    document.addEventListener('pointerenter', function (event) {
+        var link = event.target.closest('[data-jhh-event-modal="1"][data-jhh-event-id]');
+        if (link) {
+            prefetchEventLink(link);
+        }
+    }, true);
+
+    document.addEventListener('focusin', function (event) {
+        var link = event.target.closest('[data-jhh-event-modal="1"][data-jhh-event-id]');
+        if (link) {
+            prefetchEventLink(link);
+        }
+    });
+
+    document.addEventListener('touchstart', function (event) {
+        var link = event.target.closest('[data-jhh-event-modal="1"][data-jhh-event-id]');
+        if (link) {
+            prefetchEventLink(link);
+        }
+    }, { passive: true });
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' && root && !root.hidden) {
@@ -176,6 +299,12 @@
     });
 
     window.__jhhCalDrop = true;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scheduleInitialPrefetch, { once: true });
+    } else {
+        scheduleInitialPrefetch();
+    }
 
     function escapeHtml(value) {
         return String(value == null ? '' : value)

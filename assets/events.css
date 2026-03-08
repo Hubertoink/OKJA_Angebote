@@ -145,13 +145,13 @@
 /* ==========================================
    Angebotsevents – Single Page
    ========================================== */
-.jhh-single-event .jhh-hero { position: relative; min-height: 380px; background-size: cover; background-position: center; }
-.jhh-single-event .jhh-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.6)); }
+.jhh-single-event .jhh-hero { position: relative; min-height: 380px; overflow: hidden; background: #111822; }
+.jhh-single-event .jhh-hero::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.6)); }
 .jhh-single-event .jhh-hero--no-image {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   min-height: 280px;
 }
-.jhh-single-event .jhh-hero-overlay { position: relative; z-index: 1; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px 18px; text-align: center; min-height: 380px; }
+.jhh-single-event .jhh-hero-overlay { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; padding: 24px 18px; text-align: center; min-height: 380px; }
 .jhh-single-event .jhh-hero--no-image .jhh-hero-overlay { min-height: 280px; }
 .jhh-single-event .jhh-hero-title { margin: 0; color: #fff; font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1.08; font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif; text-shadow: 0 2px 20px rgba(0,0,0,.4); }
 

@@ -9,14 +9,17 @@ get_header();
 
 while ( have_posts() ) : the_post();
     $post_id = get_the_ID();
+    $single_style_groups = function_exists( 'jhh_pb_get_single_angebot_style_groups' )
+        ? jhh_pb_get_single_angebot_style_groups( $post_id )
+        : [ 'single', 'team', 'events' ];
+
     // ensure plugin styles are available on single view
     if ( function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
-        jhh_pb_enqueue_frontend_styles( [ 'single', 'team', 'events' ] );
+        jhh_pb_enqueue_frontend_styles( $single_style_groups );
     }
-    if ( function_exists( 'jhh_pb_enqueue_event_modal_assets' ) ) {
+    if ( in_array( 'events', $single_style_groups, true ) && function_exists( 'jhh_pb_enqueue_event_modal_assets' ) ) {
         jhh_pb_enqueue_event_modal_assets();
     }
-    $hero_url = get_the_post_thumbnail_url( $post_id, 'full' );
     $back_param = isset( $_GET['back'] ) ? esc_url_raw( wp_unslash( $_GET['back'] ) ) : '';
     $back_href = $back_param ? $back_param : get_post_type_archive_link( 'angebot' );
     
@@ -46,13 +49,19 @@ while ( have_posts() ) : the_post();
 ?>
 
 <main class="jhh-single-angebot" id="main">
-    <?php if ( $hero_url ) : ?>
-    <section class="<?php echo esc_attr( $hero_classes ); ?>" style="background-image:url('<?php echo esc_url( $hero_url ); ?>')">
-        <div class="jhh-hero-overlay">
-            <h1 class="<?php echo esc_attr( $title_classes ); ?>" data-text="<?php echo esc_attr( $title_text ); ?>"><?php echo esc_html( $title_text ); ?></h1>
-        </div>
-    </section>
-    <?php endif; ?>
+    <?php
+    if ( function_exists( 'jhh_pb_render_single_hero_markup' ) ) {
+        echo jhh_pb_render_single_hero_markup( $post_id, [
+            'section_class'     => $hero_classes,
+            'title_class'       => $title_classes,
+            'title_text'        => $title_text,
+            'image_size'        => 'large',
+            'sizes'             => '100vw',
+            'eager'             => true,
+            'include_data_text' => true,
+        ] );
+    }
+    ?>
 
     <div class="jhh-single-wrap">
         <?php

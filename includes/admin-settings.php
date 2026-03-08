@@ -144,6 +144,20 @@ add_action( 'admin_init', function() {
             return in_array( $val, [ 'single', 'modal' ], true ) ? $val : 'single';
         }
     ] );
+    register_setting( 'okja_settings_group', 'okja_event_calendar_button', [
+        'type' => 'string',
+        'default' => '1',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ '0', '1' ], true ) ? $val : '1';
+        }
+    ] );
+    register_setting( 'okja_settings_group', 'okja_event_modal_permalink_button', [
+        'type' => 'string',
+        'default' => '1',
+        'sanitize_callback' => function( $val ) {
+            return in_array( $val, [ '0', '1' ], true ) ? $val : '1';
+        }
+    ] );
     register_setting( 'okja_settings_group', 'okja_events_future_days', [
         'type' => 'integer',
         'default' => 365,
@@ -261,6 +275,8 @@ add_action( 'admin_init', function() {
     );
     add_settings_field( 'okja_events_show_in_angebot', __( 'Events anzeigen', 'jhh-posts-block' ), 'okja_render_events_show_field', 'okja-angebote-settings', 'okja_events_section' );
     add_settings_field( 'okja_event_link_mode', __( 'Event öffnen als', 'jhh-posts-block' ), 'okja_render_event_link_mode_field', 'okja-angebote-settings', 'okja_events_section' );
+    add_settings_field( 'okja_event_calendar_button', __( 'Kalender-Button', 'jhh-posts-block' ), 'okja_render_event_calendar_button_field', 'okja-angebote-settings', 'okja_events_section' );
+    add_settings_field( 'okja_event_modal_permalink_button', __( 'Seiten-Link im Modal', 'jhh-posts-block' ), 'okja_render_event_modal_permalink_button_field', 'okja-angebote-settings', 'okja_events_section' );
     add_settings_field( 'okja_events_range', __( 'Zeitraum', 'jhh-posts-block' ), 'okja_render_events_range_field', 'okja-angebote-settings', 'okja_events_section' );
 
     add_settings_section(
@@ -385,6 +401,30 @@ function okja_render_event_link_mode_field() {
         <label><input type="radio" name="okja_event_link_mode" value="modal" <?php checked( $mode, 'modal' ); ?>> <?php esc_html_e( 'Popup-Modal auf derselben Seite', 'jhh-posts-block' ); ?></label>
     </fieldset>
     <p class="description"><?php esc_html_e( 'Gilt für die vom Plugin gerenderten Event-Kacheln und Event-Links. Im Modal bleibt die normale Single-Seite weiterhin als Fallback erreichbar.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_event_calendar_button_field() {
+    $enabled = get_option( 'okja_event_calendar_button', '1' );
+    ?>
+    <label>
+        <input type="hidden" name="okja_event_calendar_button" value="0">
+        <input type="checkbox" name="okja_event_calendar_button" value="1" <?php checked( $enabled, '1' ); ?>>
+        <?php esc_html_e( 'Button "Zum Kalender" bei A-Events anzeigen', 'jhh-posts-block' ); ?>
+    </label>
+    <p class="description"><?php esc_html_e( 'Blendet den Kalender-Dropdown unterhalb der A-Event-Inhalte ein oder aus.', 'jhh-posts-block' ); ?></p>
+    <?php
+}
+
+function okja_render_event_modal_permalink_button_field() {
+    $enabled = get_option( 'okja_event_modal_permalink_button', '1' );
+    ?>
+    <label>
+        <input type="hidden" name="okja_event_modal_permalink_button" value="0">
+        <input type="checkbox" name="okja_event_modal_permalink_button" value="1" <?php checked( $enabled, '1' ); ?>>
+        <?php esc_html_e( 'Button "Event als Seite öffnen" im Modal anzeigen', 'jhh-posts-block' ); ?>
+    </label>
+    <p class="description"><?php esc_html_e( 'Gilt nur für die Modal-Ansicht von A-Events. Die normale Single-Seite bleibt weiterhin erreichbar.', 'jhh-posts-block' ); ?></p>
     <?php
 }
 

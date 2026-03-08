@@ -149,7 +149,7 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: 10px;
-  padding: 28px 28px 24px;
+  padding: 28px 28px 56px;
 }
 
 .jhh-event-modal-kicker {
@@ -183,19 +183,19 @@
 }
 
 .jhh-event-details-card--modal {
-  margin: -36px 24px 24px;
+  margin: -18px 24px 24px;
   max-width: none;
+  position: relative;
+  z-index: 2;
 }
 
 .jhh-content--event-modal {
   padding: 0 24px 8px;
 }
 
+html.jhh-event-modal-open,
 body.jhh-event-modal-open {
-  overflow-y: scroll !important;
-  position: fixed;
-  inset: 0;
-  width: 100%;
+  overflow: hidden !important;
 }
 
 /* --- closing animation (added via JS class) --- */
@@ -228,8 +228,12 @@ body.jhh-event-modal-open {
     min-height: 200px;
   }
 
+  .jhh-event-modal-cover-overlay {
+    padding: 24px 18px 44px;
+  }
+
   .jhh-event-details-card--modal {
-    margin: -24px 12px 18px;
+    margin: -14px 12px 18px;
   }
 
   .jhh-content--event-modal {

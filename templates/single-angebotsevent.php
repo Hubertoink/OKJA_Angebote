@@ -9,7 +9,6 @@ get_header();
 
 while ( have_posts() ) : the_post();
     $post_id    = get_the_ID();
-    $hero_url   = get_the_post_thumbnail_url( $post_id, 'full' );
     
     // Ensure plugin styles are available
     if ( function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
@@ -48,12 +47,21 @@ while ( have_posts() ) : the_post();
 ?>
 
 <main class="jhh-single-event" id="main">
-    <?php if ( $hero_url ) : ?>
-    <section class="<?php echo esc_attr( $hero_classes ); ?>" style="background-image:url('<?php echo esc_url( $hero_url ); ?>')">
-        <div class="jhh-hero-overlay">
-            <h1 class="<?php echo esc_attr( $title_classes ); ?>" data-text="<?php echo esc_attr( $title_text ); ?>"><?php echo esc_html( $title_text ); ?></h1>
-        </div>
-    </section>
+    <?php
+    $hero_markup = function_exists( 'jhh_pb_render_single_hero_markup' )
+        ? jhh_pb_render_single_hero_markup( $post_id, [
+            'section_class'     => $hero_classes,
+            'title_class'       => $title_classes,
+            'title_text'        => $title_text,
+            'image_size'        => 'large',
+            'sizes'             => '100vw',
+            'eager'             => true,
+            'include_data_text' => true,
+        ] )
+        : '';
+    ?>
+    <?php if ( $hero_markup ) : ?>
+    <?php echo $hero_markup; ?>
     <?php else : ?>
     <section class="jhh-hero jhh-hero--no-image">
         <div class="jhh-hero-overlay">

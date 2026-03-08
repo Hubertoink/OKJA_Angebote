@@ -262,13 +262,8 @@
 .jhh-hero.anim-cinematic {
   overflow: hidden;
 }
-.jhh-hero.anim-cinematic::before {
-  content: '';
-  position: absolute;
+.jhh-hero.anim-cinematic .jhh-hero-media {
   inset: -10%;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
   animation: jhhKenBurns 20s ease-in-out infinite alternate;
   z-index: 0;
 }
@@ -303,13 +298,8 @@
 .jhh-hero.anim-parallax-drift {
   overflow: hidden;
 }
-.jhh-hero.anim-parallax-drift::before {
-  content: '';
-  position: absolute;
+.jhh-hero.anim-parallax-drift .jhh-hero-media {
   inset: -5%;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
   animation: jhhParallaxFloat 15s ease-in-out infinite;
   z-index: 0;
 }
@@ -344,13 +334,8 @@
 .jhh-hero.anim-explosive {
   overflow: hidden;
 }
-.jhh-hero.anim-explosive::before {
-  content: '';
-  position: absolute;
+.jhh-hero.anim-explosive .jhh-hero-media {
   inset: 0;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
   animation: jhhExplosiveBg 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   z-index: 0;
 }
@@ -382,13 +367,8 @@
 .jhh-hero.anim-vortex {
   overflow: hidden;
 }
-.jhh-hero.anim-vortex::before {
-  content: '';
-  position: absolute;
+.jhh-hero.anim-vortex .jhh-hero-media {
   inset: -15%;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
   animation: jhhVortexBg 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   z-index: 0;
 }
@@ -493,13 +473,8 @@
 .jhh-hero.anim-glitch-storm {
   overflow: hidden;
 }
-.jhh-hero.anim-glitch-storm::before {
-  content: '';
-  position: absolute;
+.jhh-hero.anim-glitch-storm .jhh-hero-media {
   inset: 0;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
   animation: jhhGlitchStormBg 0.5s steps(1) 3;
   z-index: 0;
 }
@@ -550,9 +525,12 @@
   margin-bottom: 0.5em;
 }
 
-.jhh-single-angebot .jhh-hero{ position:relative; min-height: 420px; background-size: cover; background-position: center; }
-.jhh-single-angebot .jhh-hero::after{ content:''; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55)); }
-.jhh-single-angebot .jhh-hero-overlay{ position:relative; z-index:1; height:100%; display:flex; align-items:center; justify-content:center; padding: 24px 18px; text-align:center; padding-top: calc(72px + 18px); box-sizing: border-box; }
+.jhh-hero-media{ position:absolute; inset:0; z-index:0; overflow:hidden; }
+.jhh-hero-image{ display:block; width:100%; height:100%; object-fit:cover; object-position:center; }
+
+.jhh-single-angebot .jhh-hero{ position:relative; min-height: 420px; overflow:hidden; background:#111; }
+.jhh-single-angebot .jhh-hero::after{ content:''; position:absolute; inset:0; z-index:1; background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55)); }
+.jhh-single-angebot .jhh-hero-overlay{ position:relative; z-index:3; min-height:420px; display:flex; align-items:center; justify-content:center; padding: 24px 18px; text-align:center; padding-top: calc(72px + 18px); box-sizing: border-box; }
 .jhh-single-angebot .jhh-hero-title{ margin:0; color:#fff; font-size: clamp(3rem, 9vw, 6rem); line-height:1.05; margin-top: clamp(8px, 8vh, 120px); }
 
 @media (max-width: 900px) {
