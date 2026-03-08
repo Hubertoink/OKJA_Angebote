@@ -1,0 +1,230 @@
+#okja-angebote-settings .okja-settings-radio-list label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+#okja-angebote-settings .okja-settings-compact-table {
+    margin: 0;
+}
+
+#okja-angebote-settings .okja-settings-compact-table th {
+    width: 150px;
+    padding: 10px 10px 10px 0;
+}
+
+#okja-angebote-settings .okja-settings-compact-table td {
+    padding: 10px 0;
+}
+
+#okja-angebote-settings .okja-settings-range-table th {
+    width: 250px;
+}
+
+#okja-angebote-settings .okja-settings-legend {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+#okja-angebote-settings .okja-settings-wide-select {
+    min-width: 350px;
+}
+
+#okja-angebote-settings .okja-settings-textwide {
+    min-width: 400px;
+}
+
+#okja-angebote-settings .okja-style-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#okja-angebote-settings .okja-style-swatch {
+    width: 64px;
+    height: 40px;
+    border-radius: 8px;
+    background: #141414;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+#okja-angebote-settings .okja-style-swatch.is-grainy::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+#okja-angebote-settings .okja-settings-preview-note {
+    margin-top: 12px;
+}
+
+#okja-angebote-settings .okja-settings-staff-preview {
+    --okja-staff-bg: #2b2727;
+    --okja-staff-text: #ffffff;
+    --okja-staff-accent: #b9aaff;
+    --okja-staff-bg-image: none;
+    position: relative;
+    max-width: 350px;
+    overflow: hidden;
+    padding: 24px 18px 18px;
+    border-radius: 16px;
+    background-color: var(--okja-staff-bg);
+    background-image: var(--okja-staff-bg-image);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: var(--okja-staff-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#okja-angebote-settings .okja-settings-staff-preview .okja-preview-topline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--okja-staff-accent), #ee0979, #8a2be2, #4169e1, #00c6ff);
+}
+
+#okja-angebote-settings .okja-settings-preview-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#okja-angebote-settings .okja-settings-preview-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.3rem;
+}
+
+#okja-angebote-settings .okja-settings-avatar {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 32px;
+}
+
+#okja-angebote-settings .okja-settings-preview-role {
+    opacity: 0.9;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+#okja-angebote-settings .okja-preview-contact {
+    color: var(--okja-staff-accent);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+#okja-angebote-settings .okja-settings-preview-copy {
+    margin-top: 12px;
+    opacity: 0.95;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+#okja-angebote-settings .okja-settings-event-preview {
+    --okja-event-bg: #1e1b1b;
+    --okja-event-text: #ffffff;
+    --okja-event-accent: #b9aaff;
+    --okja-event-bg-image: none;
+    --okja-event-label: rgba(255, 255, 255, 0.55);
+    position: relative;
+    max-width: 500px;
+    overflow: hidden;
+    padding: 28px 24px 24px;
+    border-radius: 16px;
+    background-color: var(--okja-event-bg);
+    background-image: var(--okja-event-bg-image);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: var(--okja-event-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#okja-angebote-settings .okja-settings-event-preview[data-style="simple"] {
+    background-color: #1e1b1b;
+    color: #ffffff;
+}
+
+#okja-angebote-settings .okja-settings-event-preview[data-style="notebook"] {
+    background: #f5f1eb;
+    color: #333333;
+}
+
+#okja-angebote-settings .okja-settings-event-preview[data-style="aurora"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    color: #ffffff;
+}
+
+#okja-angebote-settings .okja-settings-event-preview[data-style^="grainy-"] {
+    background-color: #141414;
+}
+
+#okja-angebote-settings .okja-settings-event-preview .okja-event-preview-topline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--okja-event-accent), #ee0979, #8a2be2, #4169e1, #00c6ff);
+}
+
+#okja-angebote-settings .okja-settings-event-preview[data-topline="0"] .okja-event-preview-topline {
+    display: none;
+}
+
+#okja-angebote-settings .okja-settings-event-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+#okja-angebote-settings .okja-settings-event-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+#okja-angebote-settings .okja-settings-event-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+#okja-angebote-settings .okja-event-preview-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--okja-event-label);
+}
+
+#okja-angebote-settings .okja-settings-event-value {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 782px) {
+    #okja-angebote-settings .okja-settings-wide-select,
+    #okja-angebote-settings .okja-settings-textwide {
+        min-width: 0;
+        width: 100%;
+    }
+
+    #okja-angebote-settings .okja-settings-event-grid {
+        grid-template-columns: 1fr;
+    }
+}

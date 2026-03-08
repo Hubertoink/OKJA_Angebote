@@ -15,34 +15,12 @@ while ( have_posts() ) : the_post();
     if ( function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
         jhh_pb_enqueue_frontend_styles( [ 'single', 'events' ] );
     }
+    if ( function_exists( 'jhh_pb_enqueue_event_modal_assets' ) ) {
+        jhh_pb_enqueue_event_modal_assets();
+    }
 
-    // Event meta
-    $event_date   = get_post_meta( $post_id, 'jhh_event_date', true );
-    $time_start   = get_post_meta( $post_id, 'jhh_event_time_start', true );
-    $time_end     = get_post_meta( $post_id, 'jhh_event_time_end', true );
-    $price        = get_post_meta( $post_id, 'jhh_event_price', true );
     $max_part     = (int) get_post_meta( $post_id, 'jhh_event_max_participants', true );
     $angebot_id   = (int) get_post_meta( $post_id, 'jhh_event_angebot_id', true );
-    $sold_out     = (bool) get_post_meta( $post_id, 'jhh_event_sold_out', true );
-
-    // Format date
-    $date_display = '';
-    $date_weekday = '';
-    if ( $event_date ) {
-        $ts = strtotime( $event_date );
-        if ( $ts ) {
-            $date_display = wp_date( 'j. F Y', $ts );
-            $date_weekday = wp_date( 'l', $ts );
-        }
-    }
-
-    // Format time
-    $time_display = '';
-    if ( $time_start && $time_end ) {
-        $time_display = esc_html( $time_start ) . ' – ' . esc_html( $time_end ) . ' Uhr';
-    } elseif ( $time_start ) {
-        $time_display = esc_html( $time_start ) . ' Uhr';
-    }
 
     // Back link
     $back_param = isset( $_GET['back'] ) ? esc_url_raw( wp_unslash( $_GET['back'] ) ) : '';
@@ -67,41 +45,6 @@ while ( have_posts() ) : the_post();
     }
     $title_text = get_the_title();
 
-    // Event card style settings
-    $ec_style   = get_option( 'okja_event_card_style', 'simple' );
-    $ec_bg      = get_option( 'okja_event_card_bg', '#1e1b1b' );
-    $ec_text    = get_option( 'okja_event_card_text', '#ffffff' );
-    $ec_accent  = get_option( 'okja_event_card_accent', '#b9aaff' );
-    $ec_topline = get_option( 'okja_event_card_topline', '1' );
-    $ec_color_mode = get_option( 'okja_color_mode', 'auto' );
-
-    // Build event card inline style
-    $ec_inline_css = '';
-    $ec_grainy_map = [
-        'grainy-1' => JHH_PB_URL . 'assets/pexels-codioful-7130481.jpg',
-        'grainy-2' => JHH_PB_URL . 'assets/pexels-codioful-7130499.jpg',
-        'grainy-3' => JHH_PB_URL . 'assets/pexels-codioful-7130555.jpg',
-    ];
-    if ( $ec_style === 'notebook' ) {
-        $ec_inline_css = '--jhh-event-card-bg:#f5f1eb;--jhh-event-card-text:#333;--jhh-event-card-label:#888;background-color:#f5f1eb;color:#333;';
-    } elseif ( $ec_style === 'aurora' ) {
-        $ec_inline_css = '--jhh-event-card-text:#fff;--jhh-event-card-label:rgba(255,255,255,0.6);background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);color:#fff;';
-    } elseif ( isset( $ec_grainy_map[ $ec_style ] ) ) {
-        $ec_inline_css = '--jhh-event-card-text:#fff;--jhh-event-card-label:rgba(255,255,255,0.6);background-color:#141414;background-image:url(' . esc_url( $ec_grainy_map[ $ec_style ] ) . ');color:#fff;';
-    } elseif ( $ec_style === 'custom' ) {
-        $ec_inline_css = '--jhh-event-card-bg:' . esc_attr( $ec_bg ) . ';--jhh-event-card-text:' . esc_attr( $ec_text ) . ';--jhh-event-card-label:' . esc_attr( $ec_accent ) . ';background-color:' . esc_attr( $ec_bg ) . ';color:' . esc_attr( $ec_text ) . ';';
-    } else {
-        // simple (default) – let the dynamic theme CSS handle colors
-        // Only set explicit dark colors if forced to dark mode
-        if ( $ec_color_mode === 'dark' ) {
-            $ec_inline_css = '--jhh-event-card-bg:#1e1b1b;--jhh-event-card-text:#fff;--jhh-event-card-label:#888;';
-        }
-        // In 'auto' and 'light' mode, the dynamic CSS will handle it
-    }
-
-    // Topline gradient uses accent color
-    $ec_topline_css = '--jhh-event-card-topline:linear-gradient(90deg,' . esc_attr( $ec_accent ) . ',#ee0979,#8a2be2,#4169e1,#00c6ff);';
-    $ec_topline_hidden = ( $ec_topline !== '1' );
 ?>
 
 <main class="jhh-single-event" id="main">
@@ -121,102 +64,7 @@ while ( have_posts() ) : the_post();
 
     <div class="jhh-single-wrap">
 
-        <!-- Event Details Card -->
-        <div class="jhh-event-details-card" style="<?php echo $ec_inline_css . $ec_topline_css; ?>">
-            <div class="jhh-event-details-topline<?php echo $ec_topline_hidden ? ' jhh-hidden' : ''; ?>"></div>
-            <div class="jhh-event-details-grid">
-                <?php if ( $date_display ) : ?>
-                <div class="jhh-event-detail">
-                    <span class="jhh-event-detail-icon">📅</span>
-                    <div class="jhh-event-detail-content">
-                        <span class="jhh-event-detail-label"><?php esc_html_e( 'Datum', 'jhh-posts-block' ); ?></span>
-                        <span class="jhh-event-detail-value"><?php echo esc_html( $date_weekday . ', ' . $date_display ); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <?php if ( $time_display ) : ?>
-                <div class="jhh-event-detail">
-                    <span class="jhh-event-detail-icon">🕐</span>
-                    <div class="jhh-event-detail-content">
-                        <span class="jhh-event-detail-label"><?php esc_html_e( 'Uhrzeit', 'jhh-posts-block' ); ?></span>
-                        <span class="jhh-event-detail-value"><?php echo $time_display; ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <?php if ( $price ) : ?>
-                <div class="jhh-event-detail">
-                    <span class="jhh-event-detail-icon">💰</span>
-                    <div class="jhh-event-detail-content">
-                        <span class="jhh-event-detail-label"><?php esc_html_e( 'Preis', 'jhh-posts-block' ); ?></span>
-                        <span class="jhh-event-detail-value"><?php echo esc_html( $price ); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <?php if ( $max_part > 0 ) : ?>
-                <div class="jhh-event-detail">
-                    <span class="jhh-event-detail-icon">👥</span>
-                    <div class="jhh-event-detail-content">
-                        <span class="jhh-event-detail-label"><?php esc_html_e( 'Teilnehmer', 'jhh-posts-block' ); ?></span>
-                        <span class="jhh-event-detail-value"><?php printf( esc_html__( 'max. %d Plätze', 'jhh-posts-block' ), $max_part ); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <?php if ( $sold_out ) : ?>
-                <div class="jhh-event-detail jhh-event-detail--sold-out">
-                    <span class="jhh-event-detail-icon">🚫</span>
-                    <div class="jhh-event-detail-content">
-                        <span class="jhh-event-detail-label"><?php esc_html_e( 'Status', 'jhh-posts-block' ); ?></span>
-                        <span class="jhh-event-detail-value" style="color:#ff6b6b;"><?php esc_html_e( 'Ausgebucht', 'jhh-posts-block' ); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-
-            <?php if ( $angebot_id > 0 ) :
-                $angebot_title = get_the_title( $angebot_id );
-                $angebot_link  = get_permalink( $angebot_id );
-                $angebot_bg    = get_the_post_thumbnail_url( $angebot_id, 'large' );
-                if ( $angebot_title ) : ?>
-                <div class="jhh-event-linked-angebot">
-                    <span class="jhh-event-detail-label"><?php esc_html_e( 'Gehört zum Angebot', 'jhh-posts-block' ); ?></span>
-                    <a class="jhh-event-angebot-card" href="<?php echo esc_url( $angebot_link ); ?>"<?php if ( $angebot_bg ) : ?> style="background:url('<?php echo esc_url( $angebot_bg ); ?>') center/cover no-repeat;"<?php endif; ?>>
-                        <span class="jhh-event-angebot-name"><?php echo esc_html( $angebot_title ); ?></span>
-                        <span class="jhh-event-angebot-arrow">→</span>
-                    </a>
-                </div>
-                <?php endif; ?>
-            <?php endif; ?>
-        </div>
-
-        <!-- Content -->
-        <article class="jhh-content">
-            <?php the_content(); ?>
-        </article>
-
-        <?php
-        // CTA / Anmeldung Button
-        $cta_url   = get_post_meta( $post_id, 'jhh_event_cta_url', true );
-        $cta_label = get_post_meta( $post_id, 'jhh_event_cta_label', true );
-        if ( $cta_url ) :
-            $cta_label = $cta_label ?: __( 'Jetzt anmelden', 'jhh-posts-block' );
-            $is_sold_out = $sold_out;
-        ?>
-        <div class="jhh-event-cta-wrap">
-            <a class="jhh-event-cta-btn<?php echo $is_sold_out ? ' jhh-event-cta-btn--disabled' : ''; ?>" href="<?php echo esc_url( $cta_url ); ?>"<?php echo $is_sold_out ? '' : ' target="_blank" rel="noopener noreferrer"'; ?>>
-                <?php if ( $is_sold_out ) : ?>
-                    <span class="jhh-event-cta-icon">🚫</span>
-                    <span><?php esc_html_e( 'Ausgebucht', 'jhh-posts-block' ); ?></span>
-                <?php else : ?>
-                    <span class="jhh-event-cta-icon">✉️</span>
-                    <span><?php echo esc_html( $cta_label ); ?></span>
-                <?php endif; ?>
-            </a>
-        </div>
-        <?php endif; ?>
+        <?php echo function_exists( 'jhh_pb_get_event_detail_markup' ) ? jhh_pb_get_event_detail_markup( $post_id ) : ''; ?>
 
         <?php
         // Weitere Events vom selben Angebot
@@ -265,7 +113,7 @@ while ( have_posts() ) : the_post();
                             if ( $rts ) $rel_date_display = wp_date( 'j. M Y', $rts );
                         }
                     ?>
-                    <a class="jhh-related-item" href="<?php echo esc_url( get_permalink( $rel_id ) ); ?>">
+                    <a class="jhh-related-item" href="<?php echo esc_url( get_permalink( $rel_id ) ); ?>"<?php echo function_exists( 'jhh_pb_get_event_link_attributes' ) ? jhh_pb_get_event_link_attributes( $rel_id ) : ''; ?>>
                         <?php echo $rel_thumb ?: ''; ?>
                         <div class="jhh-related-content">
                             <span class="jhh-related-title"><?php echo esc_html( get_the_title() ); ?></span>

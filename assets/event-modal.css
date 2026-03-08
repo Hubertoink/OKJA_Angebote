@@ -1,0 +1,238 @@
+.jhh-event-modal-root[hidden] {
+  display: none;
+}
+
+.jhh-event-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- backdrop fade --- */
+.jhh-event-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 10, 0.72);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  animation: jhhModalBackdropIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes jhhModalBackdropIn {
+  to { opacity: 1; }
+}
+
+/* --- dialog slide-up + scale --- */
+.jhh-event-modal-dialog {
+  position: relative;
+  width: min(940px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, #19171a 0%, #0e0d0d 100%);
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255,255,255,0.04);
+  opacity: 0;
+  transform: translateY(32px) scale(0.97);
+  animation: jhhModalDialogIn 0.48s cubic-bezier(0.16, 1, 0.3, 1) 0.06s forwards;
+}
+
+/* Hide dialog while loading – only spinner visible on backdrop */
+.jhh-event-modal-root.is-loading .jhh-event-modal-dialog {
+  display: none;
+}
+
+/* Floating spinner on backdrop */
+.jhh-event-modal-spinner {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.jhh-event-modal-root.is-loading .jhh-event-modal-spinner {
+  display: flex;
+}
+.jhh-event-modal-spinner::after {
+  content: "";
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: rgba(255,255,255,0.6);
+  animation: jhhModalSpin 0.75s linear infinite;
+}
+@keyframes jhhModalSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes jhhModalDialogIn {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- close button: minimal, no bg --- */
+.jhh-event-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 4;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 1;
+  padding: 0;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: color 0.2s, transform 0.2s;
+}
+.jhh-event-modal-close:hover,
+.jhh-event-modal-close:focus,
+.jhh-event-modal-close:active {
+  background: none;
+  color: #fff;
+  transform: scale(1.15);
+  outline: none;
+  box-shadow: none;
+}
+
+.jhh-event-modal-scroll {
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}
+
+/* --- hide linked-angebot inside modal --- */
+.jhh-event-detail-shell.is-modal .jhh-event-linked-angebot {
+  display: none;
+}
+
+.jhh-event-modal-content {
+  color: #f7f4ef;
+}
+
+.jhh-event-modal-loading,
+.jhh-event-modal-error {
+  padding: 72px 24px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.jhh-event-modal-cover {
+  position: relative;
+  min-height: 240px;
+  background: linear-gradient(135deg, #2a1f25 0%, #111216 55%, #1a2238 100%);
+  background-size: cover;
+  background-position: center;
+}
+
+.jhh-event-modal-cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.72));
+}
+
+.jhh-event-modal-cover-overlay {
+  position: relative;
+  z-index: 1;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 28px 28px 24px;
+}
+
+.jhh-event-modal-kicker {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.jhh-event-modal-title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.04;
+  font-family: "Trebuchet MS", "Segoe UI", "Arial Rounded MT Bold", system-ui, sans-serif;
+}
+
+.jhh-event-modal-permalink {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.jhh-event-details-card--modal {
+  margin: -36px 24px 24px;
+  max-width: none;
+}
+
+.jhh-content--event-modal {
+  padding: 0 24px 8px;
+}
+
+body.jhh-event-modal-open {
+  overflow-y: scroll !important;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}
+
+/* --- closing animation (added via JS class) --- */
+.jhh-event-modal-root.is-closing .jhh-event-modal-backdrop {
+  animation: jhhModalBackdropOut 0.28s ease forwards;
+}
+.jhh-event-modal-root.is-closing .jhh-event-modal-dialog {
+  animation: jhhModalDialogOut 0.28s ease forwards;
+}
+@keyframes jhhModalBackdropOut {
+  to { opacity: 0; }
+}
+@keyframes jhhModalDialogOut {
+  to { opacity: 0; transform: translateY(18px) scale(0.97); }
+}
+
+@media (max-width: 782px) {
+  .jhh-event-modal-dialog {
+    width: calc(100vw - 12px);
+    max-height: calc(100vh - 12px);
+    border-radius: 18px;
+  }
+
+  .jhh-event-modal-scroll {
+    max-height: calc(100vh - 12px);
+  }
+
+  .jhh-event-modal-cover,
+  .jhh-event-modal-cover-overlay {
+    min-height: 200px;
+  }
+
+  .jhh-event-details-card--modal {
+    margin: -24px 12px 18px;
+  }
+
+  .jhh-content--event-modal {
+    padding: 0 12px 4px;
+  }
+}

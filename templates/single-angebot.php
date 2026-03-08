@@ -11,7 +11,10 @@ while ( have_posts() ) : the_post();
     $post_id = get_the_ID();
     // ensure plugin styles are available on single view
     if ( function_exists( 'jhh_pb_enqueue_frontend_styles' ) ) {
-        jhh_pb_enqueue_frontend_styles( [ 'single', 'team' ] );
+        jhh_pb_enqueue_frontend_styles( [ 'single', 'team', 'events' ] );
+    }
+    if ( function_exists( 'jhh_pb_enqueue_event_modal_assets' ) ) {
+        jhh_pb_enqueue_event_modal_assets();
     }
     $hero_url = get_the_post_thumbnail_url( $post_id, 'full' );
     $back_param = isset( $_GET['back'] ) ? esc_url_raw( wp_unslash( $_GET['back'] ) ) : '';
@@ -215,6 +218,136 @@ while ( have_posts() ) : the_post();
                 </section>
             <?php endif; ?>
         <?php endif; ?>
+
+        <?php
+        $show_events_in_angebot = get_option( 'okja_events_show_in_angebot', '1' );
+        if ( $show_events_in_angebot === '1' ) :
+            $today_ts    = current_time( 'timestamp' );
+            $today       = wp_date( 'Y-m-d', $today_ts );
+            $future_days = (int) get_option( 'okja_events_future_days', 365 );
+            $past_days   = (int) get_option( 'okja_events_past_days', 0 );
+            $start_date  = $past_days > 0 ? wp_date( 'Y-m-d', strtotime( '-' . $past_days . ' days', $today_ts ) ) : $today;
+            $end_date    = $future_days > 0 ? wp_date( 'Y-m-d', strtotime( '+' . $future_days . ' days', $today_ts ) ) : '';
+
+            $event_meta_query = [
+                [
+                    'key'     => 'jhh_event_angebot_id',
+                    'value'   => $post_id,
+                    'compare' => '=',
+                ],
+                [
+                    'key'     => 'jhh_event_date',
+                    'value'   => $start_date,
+                    'compare' => '>=',
+                    'type'    => 'DATE',
+                ],
+            ];
+
+            if ( $end_date ) {
+                $event_meta_query[] = [
+                    'key'     => 'jhh_event_date',
+                    'value'   => $end_date,
+                    'compare' => '<=',
+                    'type'    => 'DATE',
+                ];
+            }
+
+            $angebot_events = new WP_Query( [
+                'post_type'           => 'angebotsevent',
+                'post_status'         => 'publish',
+                'posts_per_page'      => -1,
+                'ignore_sticky_posts' => true,
+                'no_found_rows'       => true,
+                'meta_key'            => 'jhh_event_date',
+                'orderby'             => 'meta_value',
+                'order'               => 'ASC',
+                'meta_query'          => $event_meta_query,
+            ] );
+
+            if ( $angebot_events->have_posts() ) :
+        ?>
+            <section class="jhh-events-section">
+                <h3><?php esc_html_e( 'Passende A-Events', 'jhh-posts-block' ); ?></h3>
+                <div class="jhh-events-inline-grid">
+                    <?php while ( $angebot_events->have_posts() ) : $angebot_events->the_post(); ?>
+                        <?php
+                        $event_id          = get_the_ID();
+                        $event_date        = get_post_meta( $event_id, 'jhh_event_date', true );
+                        $event_time_start  = get_post_meta( $event_id, 'jhh_event_time_start', true );
+                        $event_time_end    = get_post_meta( $event_id, 'jhh_event_time_end', true );
+                        $event_price       = get_post_meta( $event_id, 'jhh_event_price', true );
+                        $event_max         = (int) get_post_meta( $event_id, 'jhh_event_max_participants', true );
+                        $event_sold_out    = (bool) get_post_meta( $event_id, 'jhh_event_sold_out', true );
+                        $event_excerpt     = has_excerpt( $event_id ) ? get_the_excerpt() : wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $event_id ) ), 24 );
+                        $event_thumb       = get_the_post_thumbnail( $event_id, 'medium_large', [ 'class' => 'jhh-event-inline-thumb' ] );
+                        $event_timestamp   = $event_date ? strtotime( $event_date ) : false;
+                        $event_day         = $event_timestamp ? wp_date( 'd', $event_timestamp ) : '–';
+                        $event_month       = $event_timestamp ? wp_date( 'M', $event_timestamp ) : __( 'Offen', 'jhh-posts-block' );
+                        $event_card_class  = 'jhh-event-inline-card';
+                        $event_meta_items  = [];
+
+                        if ( $event_timestamp && $event_timestamp < strtotime( $today ) ) {
+                            $event_card_class .= ' jhh-event--past';
+                        }
+
+                        if ( $event_sold_out ) {
+                            $event_card_class .= ' jhh-event--sold-out';
+                        }
+
+                        if ( $event_date ) {
+                            $date_label = $event_timestamp ? wp_date( 'D, j. M Y', $event_timestamp ) : $event_date;
+                            $event_meta_items[] = '<span>📅 ' . esc_html( $date_label ) . '</span>';
+                        }
+
+                        if ( $event_time_start && $event_time_end ) {
+                            $event_meta_items[] = '<span>🕐 ' . esc_html( $event_time_start . ' - ' . $event_time_end . ' Uhr' ) . '</span>';
+                        } elseif ( $event_time_start ) {
+                            $event_meta_items[] = '<span>🕐 ' . esc_html( $event_time_start . ' Uhr' ) . '</span>';
+                        }
+
+                        if ( $event_price ) {
+                            $event_meta_items[] = '<span>💰 ' . esc_html( $event_price ) . '</span>';
+                        }
+
+                        if ( $event_sold_out ) {
+                            $event_meta_items[] = '<span>' . esc_html__( 'Ausgebucht', 'jhh-posts-block' ) . '</span>';
+                        } elseif ( $event_max > 0 ) {
+                            $event_meta_items[] = '<span>👥 ' . esc_html( sprintf( __( 'max. %d Plätze', 'jhh-posts-block' ), $event_max ) ) . '</span>';
+                        }
+                        ?>
+                        <a class="<?php echo esc_attr( $event_card_class ); ?>" href="<?php the_permalink(); ?>"<?php echo function_exists( 'jhh_pb_get_event_link_attributes' ) ? jhh_pb_get_event_link_attributes( $event_id ) : ''; ?>>
+                            <?php if ( $event_sold_out ) : ?>
+                                <span class="jhh-event-sold-out-banner"><?php esc_html_e( 'Ausgebucht', 'jhh-posts-block' ); ?></span>
+                            <?php endif; ?>
+                            <?php if ( $event_thumb ) : ?>
+                                <div class="jhh-event-inline-image">
+                                    <?php echo $event_thumb; ?>
+                                    <?php if ( $event_excerpt ) : ?>
+                                        <div class="jhh-event-hover-desc"><p><?php echo esc_html( $event_excerpt ); ?></p></div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                            <div class="jhh-event-inline-body">
+                                <div class="jhh-event-inline-date-block">
+                                    <span class="jhh-event-inline-day"><?php echo esc_html( $event_day ); ?></span>
+                                    <span class="jhh-event-inline-month"><?php echo esc_html( $event_month ); ?></span>
+                                </div>
+                                <div class="jhh-event-inline-info">
+                                    <div class="jhh-event-inline-title"><?php the_title(); ?></div>
+                                    <?php if ( $event_meta_items ) : ?>
+                                        <div class="jhh-event-inline-meta"><?php echo wp_kses_post( implode( '', $event_meta_items ) ); ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </a>
+                    <?php endwhile; ?>
+                </div>
+            </section>
+        <?php
+            endif;
+            wp_reset_postdata();
+        endif;
+        ?>
 
         <?php
         // Weitere Angebote – zeige alle anderen Angebote (max 5), zufällig sortiert
